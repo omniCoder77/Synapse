@@ -4,6 +4,7 @@ import co.elastic.clients.elasticsearch.ElasticsearchClient
 import co.elastic.clients.elasticsearch.core.IndexResponse
 import com.ethyllium.searchservice.dto.request.SearchRequest
 import com.ethyllium.searchservice.model.Product
+import com.ethyllium.searchservice.util.DatabaseConstants
 import org.springframework.stereotype.Service
 
 
@@ -13,7 +14,9 @@ class ProductService(
 ) {
 
     fun add(product: Product): IndexResponse? {
-        return elasticsearchClient.index { it.index("product").id(product.id).document(product) }
+        return elasticsearchClient.index {
+            it.index(DatabaseConstants.PRODUCT_INDEX_NAME).id(product.id).document(product)
+        }
     }
 
     fun search(searchRequest: SearchRequest, brand: String?): List<Product> {

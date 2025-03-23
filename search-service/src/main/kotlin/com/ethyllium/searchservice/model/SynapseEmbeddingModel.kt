@@ -1,4 +1,4 @@
-package com.ethyllium.searchservice.config
+package com.ethyllium.searchservice.model
 
 import org.springframework.ai.document.Document
 import org.springframework.ai.embedding.EmbeddingModel
