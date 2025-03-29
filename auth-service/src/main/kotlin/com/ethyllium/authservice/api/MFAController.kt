@@ -26,7 +26,7 @@ class MFAController(
     @GetMapping("/setup-2fa")
     fun setup2fa(@AuthenticationPrincipal user: User): ResponseEntity<ByteArray> {
         val (secret, otpUri) = totpService.generateSecret(user.email)
-        userService.updateUserSecret(user.userId, secret)
+        userService.updateUserSecret(user.username, secret)
         val qrCode = qrCodeService.generateQrCode(otpUri)
         return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(qrCode)
     }
@@ -43,7 +43,7 @@ class MFAController(
         val isValid = validationService.validateCode(user.totp!!, code)
         return if (isValid) {
             val mfaResult = mfaPurposeFactory.getMfaPurposeHandler(mfaPurpose)
-                .handle(username = user.username, userId = user.userId)
+                .handle(username = user.username, userId = user.username)
             return ResponseEntity.ok().headers { it.add(HttpHeaders.AUTHORIZATION, mfaResult) }
                 .body("MFA authentication successful")
         } else {

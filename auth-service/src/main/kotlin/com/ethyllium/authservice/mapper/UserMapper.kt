@@ -10,7 +10,6 @@ class UserMapper(
     private val passwordEncoder: PasswordEncoder
 ) {
     fun toUser(registerRequest: RegisterRequest) = User(
-        userName = registerRequest.username,
         _password = passwordEncoder.encode(registerRequest.password),
         email = registerRequest.email,
         mfa = registerRequest.f2a

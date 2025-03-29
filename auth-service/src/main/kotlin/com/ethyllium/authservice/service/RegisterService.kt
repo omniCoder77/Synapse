@@ -36,8 +36,8 @@ class RegisterService(
             user.refreshToken = refreshToken
             val accessToken = jwtService.generateAccessToken(user.username)
             val savedUser = userRepository.save(user)
-            validationService.sendVerificationMail(savedUser.email, savedUser.email, savedUser.userId)
-            validationService.sendVerificationOtp(savedUser.phoneNumber, savedUser.userId)
+            validationService.sendVerificationMail(savedUser.email, savedUser.email, savedUser.username)
+            validationService.sendVerificationOtp(savedUser.phoneNumber, savedUser.username)
             val loginAttempt = LoginAttempt(username = savedUser.username, deviceFingerprint = listOf(deviceFingerprint))
             loginAttemptRepository.save(loginAttempt)
             return accessToken
@@ -53,7 +53,7 @@ class RegisterService(
 
         if (user.enabled) return false
 
-        validationService.sendVerificationMail(user.email, user.email, user.userId)
+        validationService.sendVerificationMail(user.email, user.email, user.username)
 
         return true
     }

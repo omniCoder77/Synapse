@@ -4,6 +4,8 @@ import org.springframework.data.elasticsearch.annotations.Document
 import org.springframework.data.annotation.Id
 import org.springframework.data.elasticsearch.annotations.Field
 import org.springframework.data.elasticsearch.annotations.FieldType
+import org.springframework.data.elasticsearch.annotations.GeoPointField
+import org.springframework.data.elasticsearch.core.geo.GeoPoint
 import java.util.UUID
 
 @Document(indexName = "products")
@@ -13,6 +15,9 @@ data class Product(
 
     @Field(type = FieldType.Text)
     val name: String = "",
+
+    @GeoPointField
+    val location: GeoPoint? = null,
 
     @Field(type = FieldType.Text)
     val description: String = "",

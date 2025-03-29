@@ -33,7 +33,7 @@ class ValidationService(
     fun verifyAccount(token: String): Boolean {
         val userId = validateToken(token) ?: return false
         val user = userRepository.findById(userId).orElse(null) ?: return false
-        userRepository.enableUser(user.userId)
+        userRepository.enableUser(user.username)
         return true
     }
 

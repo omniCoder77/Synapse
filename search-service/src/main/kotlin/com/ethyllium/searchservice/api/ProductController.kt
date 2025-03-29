@@ -3,6 +3,7 @@ package com.ethyllium.searchservice.api
 import com.ethyllium.searchservice.dto.request.ProductRequest
 import com.ethyllium.searchservice.dto.response.ApiResponse
 import com.ethyllium.searchservice.mapper.ProductMapper
+import com.ethyllium.searchservice.ports.InsertProduct
 import com.ethyllium.searchservice.search.BrandExtractor
 import com.ethyllium.searchservice.search.SearchQueryBuilder
 import com.ethyllium.searchservice.service.BrandService
@@ -14,13 +15,18 @@ import org.springframework.web.bind.annotation.*
 class ProductController(
     private val productService: ProductService,
     private val productMapper: ProductMapper,
-    private val brandService: BrandService
+    private val brandService: BrandService,
+    private val insertProduct: InsertProduct
 ) {
 
     @PostMapping
     fun add(@RequestBody productRequest: ProductRequest): ApiResponse {
-        return productService.add(productMapper.createProduct(productRequest))?.let { ApiResponse.success(it) }
-            ?: ApiResponse.error("Unable to add product")
+        val product = productMapper.createProduct(productRequest)
+        val res = productService.insert(product)
+        if (res != null) {
+            return ApiResponse.Success(res)
+        }
+        return ApiResponse.Error("Product not created")
     }
 
     @GetMapping

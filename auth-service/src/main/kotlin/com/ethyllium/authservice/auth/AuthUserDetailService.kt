@@ -10,6 +10,6 @@ class AuthUserDetailService(
     private val userRepository: UserRepository
 ): UserDetailsService {
     override fun loadUserByUsername(username: String): UserDetails {
-        return userRepository.findUserByUserName(username).firstOrNull() as UserDetails
+        return userRepository.findUserBy_username(username).firstOrNull() as UserDetails
     }
 }

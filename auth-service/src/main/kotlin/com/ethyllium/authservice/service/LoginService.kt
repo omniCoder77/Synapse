@@ -33,7 +33,7 @@ class LoginService(
                     )
                     return LoginAttempt.MFALogin(mfaToken)
                 } else {
-                    val token = tokenService.generateToken(user.userId)
+                    val token = tokenService.generateToken(user.username)
                     emailService.sendVerificationEmail(to = user.email, name = user.username, verificationToken = token)
                     return LoginAttempt.CredentialVerification
                 }

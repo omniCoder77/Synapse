@@ -32,5 +32,6 @@ class ForgotPasswordController(
         if (claims[Claims.ACTION] == null) {
 
         }
+        return ResponseEntity(HttpStatus.OK)
     }
 }

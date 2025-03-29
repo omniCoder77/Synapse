@@ -8,14 +8,12 @@ import java.time.LocalDateTime
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-@Table(name = "users")
+@Table(name = "users", indexes = [Index(columnList = "_username", unique = true)])
 @Entity(name = "users")
 data class User @OptIn(ExperimentalUuidApi::class) constructor(
-    @Id val userId: String = Uuid.random().toString(),
-    @Column(unique = true, updatable = false, length = 24) private val userName: String = "",
+    @Id val _username: String = Uuid.random().toString(),
     var _password: String = "",
-    @Column(unique = true, updatable = false)
-    val email: String = "",
+    @Column(unique = true, updatable = false) val email: String = "",
     @ElementCollection(fetch = FetchType.EAGER) val roles: MutableList<String> = mutableListOf(),
     val isAccountLocked: Boolean = false,
     val enabled: Boolean = false,
@@ -39,7 +37,7 @@ data class User @OptIn(ExperimentalUuidApi::class) constructor(
     }
 
     override fun getUsername(): String {
-        return userName
+        return _username
     }
 
     override fun isAccountNonLocked(): Boolean {
