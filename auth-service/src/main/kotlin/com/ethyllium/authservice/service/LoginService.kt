@@ -1,5 +1,7 @@
 package com.ethyllium.authservice.service
 
+import com.ethyllium.authservice.ports.SendMail
+import com.ethyllium.authservice.ports.TokenGenerator
 import com.ethyllium.authservice.repository.LoginAttemptRepository
 import com.ethyllium.authservice.repository.UserRepository
 import com.ethyllium.authservice.util.Claims
@@ -12,20 +14,17 @@ import org.springframework.stereotype.Service
 class LoginService(
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder,
-    private val validationService: ValidationService,
     private val loginAttemptRepository: LoginAttemptRepository,
     private val jwtService: JwtService,
-    private val emailService: EmailService,
-    private val tokenService: TokenService,
+    private val tokenGenerator: TokenGenerator,
+    private val sendMail: SendMail,
 ) {
-
-    private val MAX_LOGIN_ATTEMPTS = 3
 
     fun login(email: String, password: String, deviceFingerprint: String): LoginAttempt {
         val user = userRepository.findByEmail(email).firstOrNull() ?: throw UsernameNotFoundException(email)
         if (passwordEncoder.matches(password, user.password)) {
             val loginAttempt = loginAttemptRepository.findLoginAttemptByUsername(user.username)
-                .firstOrNull()!! //  First login attempt will be created at the time of registration, so never null
+                .firstOrNull()!!
             if (!loginAttempt.deviceFingerprint.contains(deviceFingerprint)) {
                 if (user.mfa) {
                     val mfaToken = jwtService.generateAccessToken(
@@ -33,8 +32,8 @@ class LoginService(
                     )
                     return LoginAttempt.MFALogin(mfaToken)
                 } else {
-                    val token = tokenService.generateToken(user.username)
-                    emailService.sendVerificationEmail(to = user.email, name = user.username, verificationToken = token)
+                    val token = tokenGenerator.generateToken(userId = user.username)
+                    sendMail.sendVerificationEmail(to = user.email, verificationToken = token)
                     return LoginAttempt.CredentialVerification
                 }
             } else {

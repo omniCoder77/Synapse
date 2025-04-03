@@ -10,10 +10,6 @@ import org.springframework.stereotype.Repository
 interface UserRepository : JpaRepository<User, String> {
     fun findByEmail(email: String): MutableList<User>
 
-    @Modifying
-    @Query("UPDATE users SET isAccountLocked=true WHERE _username=:userId")
-    fun blockUser(userId: String)
-
     fun findUserBy_username(userName: String): MutableList<User>
 
     @Modifying

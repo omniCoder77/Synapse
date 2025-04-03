@@ -1,8 +1,8 @@
 package com.ethyllium.authservice.api
 
+import com.ethyllium.authservice.service.LoginService
 import com.ethyllium.authservice.dto.request.LoginRequest
 import com.ethyllium.authservice.service.LoginAttempt
-import com.ethyllium.authservice.service.LoginService
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

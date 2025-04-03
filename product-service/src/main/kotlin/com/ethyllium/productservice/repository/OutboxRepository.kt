@@ -13,5 +13,4 @@ interface OutboxRepository : JpaRepository<OutboxEvent, String> {
     @Modifying
     @Query("UPDATE OutboxEvent SET sent = true WHERE outboxEventId = :eventId")
     fun sentEvent(outboxEventId: String)
-    fun existsOutboxEventByOutboxEventId(outboxEventId: String): Boolean
 }

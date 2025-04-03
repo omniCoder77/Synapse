@@ -7,9 +7,6 @@ import org.springframework.stereotype.Component
 
 @Component
 class OutboxEventHandler(private val outboxRepository: OutboxRepository) {
-    fun toDTO(): String {
-        return jacksonObjectMapper().writeValueAsString(this)
-    }
 
     fun toOutboxEvent(outboxEvent: String): OutboxEvent {
         return jacksonObjectMapper().readValue(outboxEvent, OutboxEvent::class.java)

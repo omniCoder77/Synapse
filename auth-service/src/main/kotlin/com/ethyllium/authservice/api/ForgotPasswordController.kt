@@ -30,7 +30,7 @@ class ForgotPasswordController(
     fun verifyEmail(@RequestHeader(HttpHeaders.AUTHORIZATION) token: String, @RequestParam password: String): ResponseEntity<String> {
         val claims = jwtService.getClaims(token) ?: return ResponseEntity.notFound().build()
         if (claims[Claims.ACTION] == null) {
-
+            return ResponseEntity.notFound().build()
         }
         return ResponseEntity(HttpStatus.OK)
     }

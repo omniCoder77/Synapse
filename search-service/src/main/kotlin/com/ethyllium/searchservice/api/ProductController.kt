@@ -3,7 +3,6 @@ package com.ethyllium.searchservice.api
 import com.ethyllium.searchservice.dto.request.ProductRequest
 import com.ethyllium.searchservice.dto.response.ApiResponse
 import com.ethyllium.searchservice.mapper.ProductMapper
-import com.ethyllium.searchservice.ports.InsertProduct
 import com.ethyllium.searchservice.search.BrandExtractor
 import com.ethyllium.searchservice.search.SearchQueryBuilder
 import com.ethyllium.searchservice.service.BrandService
@@ -11,12 +10,11 @@ import com.ethyllium.searchservice.service.ProductService
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/products")
+@RequestMapping("/search")
 class ProductController(
     private val productService: ProductService,
     private val productMapper: ProductMapper,
-    private val brandService: BrandService,
-    private val insertProduct: InsertProduct
+    private val brandService: BrandService
 ) {
 
     @PostMapping

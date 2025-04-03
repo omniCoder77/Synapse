@@ -2,6 +2,7 @@ package com.ethyllium.authservice.api
 
 import com.ethyllium.authservice.dto.request.RegisterRequest
 import com.ethyllium.authservice.dto.response.ApiResponse
+import com.ethyllium.authservice.exception.EmailExistsException
 import com.ethyllium.authservice.mapper.UserMapper
 import com.ethyllium.authservice.service.RegisterService
 import org.postgresql.util.PSQLException
@@ -28,6 +29,8 @@ class RegisterController(
         } catch (e: PSQLException) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.Error(e.message!!))
         } catch (e: IllegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.Error(e.message!!))
+        } catch (e: EmailExistsException) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.Error(e.message!!))
         }
     }

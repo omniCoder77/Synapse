@@ -5,7 +5,6 @@ import com.ethyllium.searchservice.model.OutboxEvent
 import com.ethyllium.searchservice.model.Product
 import com.ethyllium.searchservice.ports.DeleteProduct
 import com.ethyllium.searchservice.ports.EventFailed
-import com.ethyllium.searchservice.ports.EventProcessed
 import com.ethyllium.searchservice.ports.InsertProduct
 import com.ethyllium.searchservice.repository.OutboxRepository
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -29,7 +28,6 @@ class KafkaConsumerConfig(
     private val insertProduct: InsertProduct,
     private val objectMapper: ObjectMapper,
     private val deleteProduct: DeleteProduct,
-    private val eventProcessed: EventProcessed,
     private val eventFailed: EventFailed,
     private val outboxRepository: OutboxRepository
 ) {

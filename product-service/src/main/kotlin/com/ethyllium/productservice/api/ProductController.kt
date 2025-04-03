@@ -1,4 +1,4 @@
-package com.ethyllium.productservice.controller
+package com.ethyllium.productservice.api
 
 import com.ethyllium.productservice.dto.request.CreateProductRequest
 import com.ethyllium.productservice.mapper.ProductMapper
@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/api/v1/products")
+@RequestMapping("/products")
 class ProductController(
     private val productMapper: ProductMapper
 ) {

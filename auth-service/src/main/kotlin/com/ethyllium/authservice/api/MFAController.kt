@@ -2,6 +2,7 @@ package com.ethyllium.authservice.api
 
 import com.ethyllium.authservice.mfa.MfaPurposeFactory
 import com.ethyllium.authservice.model.User
+import com.ethyllium.authservice.ports.TotpSecretGenerator
 import com.ethyllium.authservice.service.*
 import com.ethyllium.authservice.util.Claims
 import com.ethyllium.authservice.util.MfaPurpose
@@ -16,16 +17,16 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/auth")
 class MFAController(
-    private val totpService: TotpService,
     private val qrCodeService: QrCodeService,
     private val userService: UserService,
     private val validationService: ValidationService,
     private val jwtService: JwtService,
-    private val mfaPurposeFactory: MfaPurposeFactory
+    private val mfaPurposeFactory: MfaPurposeFactory,
+    private val totpSecretGenerator: TotpSecretGenerator
 ) {
     @GetMapping("/setup-2fa")
     fun setup2fa(@AuthenticationPrincipal user: User): ResponseEntity<ByteArray> {
-        val (secret, otpUri) = totpService.generateSecret(user.email)
+        val (secret, otpUri) = totpSecretGenerator.generateTotpSecret(user.email)
         userService.updateUserSecret(user.username, secret)
         val qrCode = qrCodeService.generateQrCode(otpUri)
         return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(qrCode)

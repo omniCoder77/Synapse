@@ -1,5 +1,7 @@
 package com.ethyllium.authservice.service
 
+import com.ethyllium.authservice.ports.SendMail
+import com.ethyllium.authservice.ports.TokenGenerator
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.MimeMessageHelper
@@ -13,9 +15,9 @@ class EmailService(
     private val mailSender: JavaMailSender,
     private val templateEngine: TemplateEngine,
     @Value("\${app.base}") private val appBase: String,
-) {
+): SendMail {
 
-    fun sendVerificationEmail(to: String, name: String, verificationToken: String) {
+    override fun sendVerificationEmail(to: String, verificationToken: String) {
         val message = mailSender.createMimeMessage()
         val helper = MimeMessageHelper(message, true, StandardCharsets.UTF_8.name())
 
@@ -23,7 +25,6 @@ class EmailService(
         helper.setSubject("Verify Your Account")
 
         val context = Context()
-        context.setVariable("name", name)
         context.setVariable("verificationUrl", "${appBase}/auth/verify?token=$verificationToken")
         context.setVariable("expirationMinutes", 15)
 

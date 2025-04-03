@@ -12,5 +12,5 @@ data class LoginAttempt(
     var lastLoginAttempt: Date = Date(System.currentTimeMillis()),
     @Column(columnDefinition = "SMALLINT") var attempt: Int = 0,
     @ElementCollection(fetch = FetchType.EAGER)
-    val deviceFingerprint: List<String> = listOf(),
+    val deviceFingerprint: MutableList<String> = mutableListOf(),
 )

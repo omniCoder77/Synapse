@@ -8,7 +8,6 @@ import java.util.*
 class OutboxEvent(
     @Id val outboxEventId: String = UUID.randomUUID().toString(),
     val aggregateId: String = "",
-    val eventType: String = "",
     val payload: String = "",
     var sent: Boolean = false
 )
