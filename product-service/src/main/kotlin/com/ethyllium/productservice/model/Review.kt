@@ -1,12 +1,28 @@
 package com.ethyllium.productservice.model
 
-import org.springframework.data.mongodb.core.mapping.Document
+import jakarta.persistence.*
+import jakarta.validation.constraints.Max
+import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotBlank
+import org.hibernate.annotations.Cache
+import org.hibernate.annotations.CacheConcurrencyStrategy
+import java.util.*
 
-@Document
+@Entity
+@Table(name = "reviews")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 data class Review(
-    val review: String = "",
+    @Id @GeneratedValue(strategy = GenerationType.UUID) val reviewId: UUID = UUID.randomUUID(),
+
+    @field:NotBlank val review: String = "",
+
     val description: String = "",
-    val rating: Int = 0,
-    val userName: String = "",
-    val images: List<String> = listOf(),
+
+    @field:Min(1) @field:Max(5) val rating: Int = 0,
+
+    @field:NotBlank val userName: String = "",
+
+    @ElementCollection @CollectionTable(name = "review_images", joinColumns = [JoinColumn(name = "review_id")]) @Column(
+        name = "image_url"
+    ) val images: List<String> = listOf()
 )

@@ -1,31 +1,43 @@
 package com.ethyllium.productservice.model
 
+import jakarta.persistence.*
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
-import org.springframework.data.mongodb.core.index.Indexed
-import org.springframework.data.mongodb.core.mapping.Document
+import org.hibernate.annotations.Cache
+import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.math.BigDecimal
+import java.util.*
 
-@Document
+@Entity
+@Table(
+    name = "products",
+    indexes = [Index(name = "idx_product_name", columnList = "name"), Index(
+        name = "idx_product_seller",
+        columnList = "sellerId"
+    ), Index(name = "idx_product_price", columnList = "price")]
+)
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 data class Product(
-    @field:NotBlank(message = "Product name cannot be blank") @field:Size(
-        min = 2, max = 100, message = "Product name must be between 2 and 100 characters"
-    ) @Indexed(unique = false) val name: String,
+    @Id @GeneratedValue(strategy = GenerationType.UUID) val productId: String = UUID.randomUUID().toString(),
 
-    @field:NotBlank(message = "Description cannot be blank") @field:Size(
-        max = 1000, message = "Description must be less than 1000 characters"
-    ) val description: String,
+    @field:NotBlank @field:Size(min = 2, max = 100) val name: String,
 
-    @field:Min(value = 0, message = "Price must be non-negative") val price: BigDecimal,
+    @field:NotBlank @field:Size(max = 1000) val description: String,
+
+    @field:Min(0) val price: Double = 0.0,
 
     val discount: BigDecimal? = null,
 
-    @field:NotBlank(message = "Seller ID cannot be blank") val sellerId: String,
+    @field:NotBlank val sellerId: String,
 
-    val attributes: Map<String, String> = mapOf(),
+    @OneToMany(
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true
+    ) @JoinColumn(name = "product_id") @Cache(usage = CacheConcurrencyStrategy.READ_WRITE) val reviews: List<Review> = listOf(),
 
-    val reviews: List<Review> = listOf(),
-
-    val images: List<String> = listOf()
+    @ElementCollection @CollectionTable(
+        name = "product_images",
+        joinColumns = [JoinColumn(name = "product_id")]
+    ) @Column(name = "image_url") val images: List<String> = listOf()
 )

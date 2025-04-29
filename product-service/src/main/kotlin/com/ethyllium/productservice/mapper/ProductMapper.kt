@@ -17,10 +17,10 @@ class ProductMapper(private val sellerExists: SellerExists) {
             name = createProductRequest.name,
             discount = createProductRequest.discount,
             description = createProductRequest.description,
-            attributes = createProductRequest.attributes,
             reviews = createProductRequest.reviews,
             images = createProductRequest.images,
             price = createProductRequest.price,
             sellerId = createProductRequest.sellerId,
         )
-    }}
+    }
+}

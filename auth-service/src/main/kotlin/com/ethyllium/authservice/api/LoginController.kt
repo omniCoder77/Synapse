@@ -20,7 +20,7 @@ class LoginController(private val loginService: LoginService) {
         @RequestHeader(HttpHeaders.AUTHORIZATION) password: String, loginRequest: LoginRequest
     ): ResponseEntity<String> {
         val loginRes = loginService.login(
-            email = loginRequest.username, password = password, deviceFingerprint = loginRequest.deviceFingerprint
+            email = loginRequest.email, password = password, deviceFingerprint = loginRequest.deviceFingerprint
         )
         return when (loginRes) {
             LoginAttempt.CredentialVerification -> ResponseEntity(

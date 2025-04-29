@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="SqlDialectMappings">
-    <file url="file://$PROJECT_DIR$/auth-service/src/main/kotlin/com/ethyllium/authservice/repository/LoginAttemptRepository.kt" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/payment-service/src/main/kotlin/com/synapse/paymentservice/infrastructure/output/persistence/jpa/JpaOrderEntityRepository.kt" dialect="PostgreSQL" />
     <file url="PROJECT" dialect="PostgreSQL" />
   </component>
 </project>
