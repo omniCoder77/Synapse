@@ -1,7 +1,6 @@
 package com.synapse.paymentservice.domain.event
 
-import java.time.Instant
-
-open class DomainEvent(
-    open val paymentId: String, val timestamp: Instant = Instant.now(), val payload: String = ""
-)
+sealed interface DomainEvent {
+    data class PaymentAuthorizedEvent(val razorpayOrderId: String, val paymentId: String, val status: String) : DomainEvent
+    data class PaymentFailedEvent(val razorpayOrderId: String, val paymentId: String, val status: String) : DomainEvent
+}

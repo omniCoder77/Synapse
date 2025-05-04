@@ -1,11 +1,9 @@
 package com.synapse.paymentservice.infrastructure.output.razorpay
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.razorpay.RazorpayClient
 import com.synapse.paymentservice.application.dto.request.OrderRequest
 import com.synapse.paymentservice.application.dto.request.OrderStatus
 import com.synapse.paymentservice.application.dto.response.OrderResponse
-import com.synapse.paymentservice.domain.event.OrderPaidEvent
 import com.synapse.paymentservice.domain.exception.OrderCreationException
 import com.synapse.paymentservice.domain.port.incoming.OrderServicePort
 import com.synapse.paymentservice.domain.port.outgoing.OrderRepositoryPort
@@ -22,7 +20,6 @@ import java.util.concurrent.atomic.AtomicLong
 class RazorpayPaymentGateway(
     @Value("\${razorpay.key.id}") private val razorpayKeyId: String,
     @Value("\${razorpay.secret.key}") private val razorpaySecretKey: String,
-    private val objectMapper: ObjectMapper,
     private val jpaOutboxEventRepository: JpaOutboxEventEntityRepository,
     private val orderRepositoryPort: OrderRepositoryPort,
 ) : OrderServicePort {
@@ -63,7 +60,7 @@ class RazorpayPaymentGateway(
         orderRepositoryPort.save(order)
         jpaOutboxEventRepository.save(
             OutboxEventEntity(
-                orderId, order.razorpayOrderId, objectMapper.writeValueAsString(OrderPaidEvent(orderId))
+                orderId, order.razorpayOrderId
             )
         )
     }

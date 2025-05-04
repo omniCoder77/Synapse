@@ -1,8 +1,6 @@
 package com.synapse.paymentservice.application.service
 
 import com.synapse.paymentservice.domain.event.DomainEvent
-import com.synapse.paymentservice.domain.event.PaymentAuthorizedEvent
-import com.synapse.paymentservice.domain.event.PaymentFailedEvent
 import com.synapse.paymentservice.domain.model.WebhookResult
 import com.synapse.paymentservice.domain.port.incoming.WebhookHandler
 import com.synapse.paymentservice.domain.port.outgoing.EventPublisher
@@ -45,12 +43,12 @@ class PaymentWebhookService(
         val payment = payloadJson.getJSONObject("payload").getJSONObject("payment").getJSONObject("entity")
 
         return when (eventType) {
-            "payment.authorized" -> PaymentAuthorizedEvent(
-                orderId = payment.getString("order_id"), paymentId = payment.getString("id"), status = "AUTHORIZED"
+            "payment.authorized" -> DomainEvent.PaymentAuthorizedEvent(
+                razorpayOrderId = payment.getString("order_id"), paymentId = payment.getString("id"), status = "AUTHORIZED"
             )
 
-            "payment.failed" -> PaymentFailedEvent(
-                orderId = payment.getString("order_id"), paymentId = payment.getString("id"), status = "FAILED"
+            "payment.failed" -> DomainEvent.PaymentFailedEvent(
+                razorpayOrderId = payment.getString("order_id"), paymentId = payment.getString("id"), status = "FAILED"
             )
 
             else -> throw IllegalArgumentException("Invalid event type: $eventType")
