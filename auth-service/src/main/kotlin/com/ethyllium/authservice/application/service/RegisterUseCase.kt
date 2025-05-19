@@ -39,119 +39,117 @@ class RegisterUseCase(
         private val logger = LoggerFactory.getLogger(RegisterUseCase::class.java)
     }
 
-    fun register(registerRequest: RegisterRequest): RegisterResult {
-        val username = registerRequest.username
+fun register(registerRequest: RegisterRequest): RegisterResult {
+    val username = registerRequest.username
+    val redisLockKey = "$LOCK_PREFIX$username"
+    val lockValue = UUID.randomUUID().toString()
 
-        val redisLockKey = "$LOCK_PREFIX$username"
-        val lockValue = UUID.randomUUID().toString()
-        val redisLockAcquired = lockService.lockAcquired(redisLockKey, lockValue, ttl = 1000)
-
-        if (!redisLockAcquired) {
-            return RegisterResult.Failure("Registration in progress, please try again")
-        }
-
-        val lock = userRegistrationLock.computeIfAbsent(username) { ReentrantLock() }
-
-        if (!lock.tryLock(500, TimeUnit.MILLISECONDS)) {
-            cacheRepository.remove(redisLockKey)
-            return RegisterResult.Failure("Registration in progress, please try again")
-        }
-
-        try {
-            if (userRepository.existsByUsername(username)) {
-                return RegisterResult.Failure("Username already exists")
-            }
-
-            val credentialValidity = CredentialValidator().validateCredential(username, registerRequest.password)
-
-            if (credentialValidity == null) {
-                val user = registerRequest.toUser()
-
-                val refreshTokenFuture = CompletableFuture.supplyAsync {
-                    tokenService.generateRefreshToken(user.username)
-                }
-
-                val mfaTotpFuture = if (user.isMfaEnabled) {
-                    CompletableFuture.supplyAsync {
-                        totpSecretGenerator.generateTotpSecret(user.email)
-                    }
-                } else CompletableFuture.completedFuture(null)
-
-                val refreshToken = refreshTokenFuture.get()
-                val mfaTotp = mfaTotpFuture.get()
-
-                val addedUser = userRepository.addUser(
-                    user, refreshToken = refreshToken, mfaTotp = mfaTotp?.second
-                )
-
-                val loginAttemptFuture = CompletableFuture.runAsync({
-                    val loginAttempt = LoginAttemptEntity(
-                        username = username, deviceFingerprint = mutableListOf(registerRequest.deviceFingerprint)
-                    )
-                    loginAttemptRepository.save(loginAttempt)
-                }, taskExecutor)
-
-                val otpFuture = CompletableFuture.supplyAsync({
-                    otpGenerator.generateOtp(userId = addedUser.username)
-                }, taskExecutor)
-
-                val verificationTokenFuture = CompletableFuture.supplyAsync({
-                    tokenService.generateRefreshToken(addedUser.username)
-                }, taskExecutor)
-
-                val otp = otpFuture.get()
-                val verificationToken = verificationTokenFuture.get()
-
-                CompletableFuture.allOf(
-                    // Send OTP
-                    CompletableFuture.runAsync({
-                        otpDeliveryService.sendOtp(
-                            otp = otp, userId = addedUser.username, phoneNumber = addedUser.phoneNumber
-                        )
-                    }, taskExecutor),
-
-                    CompletableFuture.runAsync({
-                        emailService.sendVerificationEmail(
-                            addedUser.email, token = verificationToken
-                        )
-                    }, taskExecutor),
-
-                    CompletableFuture.runAsync({
-                        cacheRepository.store(
-                            key = "$TOKEN_PREFIX$verificationToken",
-                            addedUser.username,
-                            ttl = 5,
-                            unit = TimeUnit.MINUTES
-                        )
-                    }, taskExecutor),
-
-                    loginAttemptFuture
-                )
-
-                return if (mfaTotp != null) {
-                    val qrCode = qrCodeGenerator.generateQrCode(uri = mfaTotp.first)
-                    RegisterResult.MfaImage(qrCode)
-                } else {
-                    val accessToken = tokenService.generateAccessToken(user.username)
-                    RegisterResult.Token(accessToken, addedUser.refreshToken)
-                }
-            } else {
-                return RegisterResult.Failure(credentialValidity)
-            }
-        } catch (e: Exception) {
-            logger.error("Registration failed for user ${registerRequest.username}", e)
-            return RegisterResult.Failure("Registration failed: ${e.message}")
-        } finally {
-            lock.unlock()
-            userRegistrationLock.remove(username, lock)
-
-            val redisLockKey = "$LOCK_PREFIX$username"
-            val lockValue = cacheRepository.get(redisLockKey)
-            if (lockValue != null) {
-                cacheRepository.remove(redisLockKey)
-            }
-        }
+    val redisLockAcquired = lockService.lockAcquired(redisLockKey, lockValue, ttl = 1000).toCompletableFuture().get()
+    if (redisLockAcquired != true) {
+        return RegisterResult.Failure("Registration in progress, please try again")
     }
+
+    val lock = userRegistrationLock.computeIfAbsent(username) { ReentrantLock() }
+
+    if (!lock.tryLock(500, TimeUnit.MILLISECONDS)) {
+        cacheRepository.remove(redisLockKey)
+        return RegisterResult.Failure("Registration in progress, please try again")
+    }
+
+    try {
+        if (userRepository.existsByUsername(username)) {
+            return RegisterResult.Failure("Username already exists")
+        }
+
+        val credentialValidity = CredentialValidator().validateCredential(username, registerRequest.password)
+
+        if (credentialValidity != null) {
+            return RegisterResult.Failure(credentialValidity)
+        }
+
+        val user = registerRequest.toUser()
+
+        val refreshTokenFuture = CompletableFuture.supplyAsync {
+            tokenService.generateRefreshToken(user.username)
+        }
+
+        val mfaTotpFuture = if (user.isMfaEnabled) {
+            CompletableFuture.supplyAsync {
+                totpSecretGenerator.generateTotpSecret(user.email)
+            }
+        } else {
+            CompletableFuture.completedFuture(null)
+        }
+
+        val refreshToken = refreshTokenFuture.get()
+        val mfaTotp = mfaTotpFuture.get()
+
+        val addedUser = userRepository.addUser(
+            user, refreshToken = refreshToken, mfaTotp = mfaTotp?.second
+        )
+
+        val loginAttemptFuture = CompletableFuture.runAsync({
+            val loginAttempt = LoginAttemptEntity(
+                username = username,
+                deviceFingerprint = mutableListOf(registerRequest.deviceFingerprint)
+            )
+            loginAttemptRepository.save(loginAttempt)
+        }, taskExecutor)
+
+        val otpFuture = CompletableFuture.supplyAsync({
+            otpGenerator.generateOtp(userId = addedUser.username)
+        }, taskExecutor)
+
+        val verificationTokenFuture = CompletableFuture.supplyAsync({
+            tokenService.generateRefreshToken(addedUser.username)
+        }, taskExecutor)
+
+        val otp = otpFuture.get()
+        val verificationToken = verificationTokenFuture.get()
+
+        CompletableFuture.allOf(
+            CompletableFuture.runAsync({
+                otpDeliveryService.sendOtp(
+                    otp = otp,
+                    userId = addedUser.username,
+                    phoneNumber = addedUser.phoneNumber
+                )
+            }, taskExecutor),
+
+            CompletableFuture.runAsync({
+                emailService.sendVerificationEmail(
+                    addedUser.email, token = verificationToken
+                )
+            }, taskExecutor),
+
+            CompletableFuture.runAsync({
+                cacheRepository.store(
+                    key = "$TOKEN_PREFIX$verificationToken",
+                    ttl = 5,
+                    unit = TimeUnit.MINUTES,
+                    data = addedUser.username
+                )
+            }, taskExecutor),
+
+            loginAttemptFuture
+        ).join()
+
+        return if (mfaTotp != null) {
+            val qrCode = qrCodeGenerator.generateQrCode(uri = mfaTotp.first)
+            RegisterResult.MfaImage(qrCode)
+        } else {
+            val accessToken = tokenService.generateAccessToken(user.username)
+            RegisterResult.Token(accessToken, addedUser.refreshToken)
+        }
+    } catch (e: Exception) {
+        logger.error("Registration failed for user ${registerRequest.username}", e)
+        return RegisterResult.Failure("Registration failed: ${e.message}")
+    } finally {
+        lock.unlock()
+        userRegistrationLock.remove(username, lock)
+        cacheRepository.remove(redisLockKey)
+    }
+}
 }
 
 sealed class RegisterResult {
