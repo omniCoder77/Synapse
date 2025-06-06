@@ -56,7 +56,8 @@ The system follows a modular microservices architecture with:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/ecommerce-backend.git
+   git clone https://github.com/omniCoder77/Synapse.git
+   cd Synapse
    ```
 2. Start infrastructure services:
    ```bash
@@ -66,6 +67,9 @@ The system follows a modular microservices architecture with:
    ```bash
    ./gradlew build && ./gradlew bootRun
    ```
+4. The system will use a pre-configured test Google OAuth client secret (fake_secret_for_demo_only) for testing. Add read client secret to the Dockerfile of auth-service
+
+
 # 📚 API Documentation
 API documentation is available via:
 
