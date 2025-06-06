@@ -67,8 +67,13 @@ The system follows a modular microservices architecture with:
    ```bash
    ./gradlew build && ./gradlew bootRun
    ```
-4. The system will use a pre-configured test Google OAuth client secret (fake_secret_for_demo_only) for testing. Add read client secret to the Dockerfile of auth-service
-
+   The environment variables
+    - TWILIO_ACCOUNT_SID
+    - TWILIO_AUTH_TOKEN
+    - TWILIO_PHONE_NUMBER
+    - TWILIO_USERNAME
+    - TWILIO_PATH_SERVICE_ID
+   are dummy, not real, need to be give proper credentials
 
 # 📚 API Documentation
 API documentation is available via:
