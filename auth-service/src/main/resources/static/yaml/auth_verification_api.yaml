@@ -1,0 +1,78 @@
+openapi: 3.0.0
+info:
+  title: Auth Verification API
+  version: 1.0.0
+  description: API for account and email verification.
+servers:
+  - url: http://localhost:8080/auth
+    description: Base URL for authentication endpoints
+tags:
+  - name: Verification
+    description: Operations related to account and email verification.
+paths:
+  /verify:
+    get:
+      summary: Verify Account
+      operationId: verifyAccount
+      description: Verifies a user's account using a provided verification token.
+      parameters:
+        - name: token
+          in: query
+          description: The verification token received via email or other means.
+          required: true
+          schema:
+            type: string
+          example: some-long-verification-token-string
+      responses:
+        '200':
+          description: Account successfully verified.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: OK
+        '404':
+          description: Invalid or expired verification token.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "" # Response body might be empty or a generic error string
+        '500':
+          description: Internal server error.
+  /verify-email:
+    get:
+      summary: Verify Email (Post-Login Verification)
+      operationId: verifyEmail
+      description: Verifies an email session and returns an access token upon successful verification. This is typically used for email verification after a new device login or similar flow.
+      parameters:
+        - name: session
+          in: query
+          description: The session token/ID for email verification.
+          required: true
+          schema:
+            type: string
+          example: some-session-id-for-email-verification
+      responses:
+        '200':
+          description: Email successfully verified. Returns an access token.
+          headers:
+            Authorization:
+              description: Bearer access token for the verified user.
+              schema:
+                type: string
+                example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+          content:
+            application/json:
+              schema:
+                type: string
+                example: OK
+        '404':
+          description: Invalid or expired session token.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "" # Response body might be empty or a generic error string
+        '500':
+          description: Internal server error.

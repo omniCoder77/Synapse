@@ -1,0 +1,74 @@
+# Build outputs
+build/
+.gradle/
+gradle-wrapper.jar
+gradle-wrapper.properties
+
+# IDE files
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation (if not needed in container)
+*.md
+docs/
+
+# Test reports and coverage
+build/reports/
+build/test-results/
+build/jacoco/
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.pid
+
+# Node modules (if any frontend assets)
+node_modules/
+npm-debug.log
+
+# Local environment files
+.env
+.env.local
+.env.*.local
+
+# Backup files
+*.bak
+*.swp
+*.swo
+*~
+
+# Docker files themselves
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# CI/CD files
+.github/
+.gitlab-ci.yml
+Jenkinsfile
+
+# Kotlin/Java specific
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+out/
+target/

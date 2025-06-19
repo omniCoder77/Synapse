@@ -1,0 +1,142 @@
+openapi: 3.0.0
+info:
+  title: Auth MFA API
+  version: 1.0.0
+  description: API for managing Multi-Factor Authentication (MFA) setup and verification.
+servers:
+  - url: http://localhost:8080/auth
+    description: Base URL for authentication endpoints
+tags:
+  - name: MFA
+    description: Operations related to Multi-Factor Authentication
+paths:
+  /setup-2fa:
+    get:
+      summary: Setup 2FA
+      operationId: setup2fa
+      description: Initiates the 2FA setup process for an authenticated user by generating a TOTP secret and returning a QR code image.
+      security:
+        - bearerAuth: [] # Assumes user is authenticated with a Bearer token
+      responses:
+        '200':
+          description: QR code image for 2FA setup successfully generated.
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+          headers:
+            Content-Type:
+              schema:
+                type: string
+                example: image/png
+        '401':
+          description: Unauthorized - User not authenticated.
+        '500':
+          description: Internal server error.
+  /verify-mfa:
+    post:
+      summary: Verify MFA Code
+      operationId: verifyMfa
+      description: Verifies the provided 2FA code from the authenticator app.
+      parameters:
+        - name: code
+          in: query
+          description: The 6-digit TOTP code from the authenticator app.
+          required: true
+          schema:
+            type: string
+            pattern: '^\d{6}$'
+          example: "123456"
+      security:
+        - bearerAuth: [] # Assumes user is authenticated with a Bearer token
+      responses:
+        '200':
+          description: MFA authentication successful. Returns a new access token.
+          headers:
+            Authorization:
+              description: New bearer token after successful MFA verification, with `mfa_verified` claim set to true.
+              schema:
+                type: string
+                example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseSuccessString'
+              examples:
+                success:
+                  summary: MFA authentication successful
+                  value:
+                    status: SUCCESS
+                    data: "MFA authentication successful"
+        '400':
+          description: Invalid code provided.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseSuccessString' # Note: code returns ApiResponse.Success("Invalid code")
+              examples:
+                invalidCode:
+                  summary: Invalid code
+                  value:
+                    status: SUCCESS
+                    data: "Invalid code"
+        '412': # PRECONDITION_FAILED
+          description: MFA not configured for this user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseError'
+              examples:
+                mfaNotConfigured:
+                  summary: MFA not configured
+                  value:
+                    status: ERROR
+                    message: "MFA not configured for this user"
+        '401':
+          description: Unauthorized - User not authenticated.
+        '500':
+          description: Internal server error.
+components:
+  schemas:
+    ApiResponse:
+      type: object
+      discriminator:
+        propertyName: status
+        mapping:
+          SUCCESS: '#/components/schemas/ApiResponseSuccess'
+          ERROR: '#/components/schemas/ApiResponseError'
+    ApiResponseSuccess:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ "SUCCESS" ]
+        data:
+          type: string # For string messages
+      required:
+        - status
+        - data
+    ApiResponseError:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ "ERROR" ]
+        message:
+          type: string
+          description: Error message details.
+      required:
+        - status
+        - message
+    ApiResponseSuccessString:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseSuccess'
+        - properties:
+            data:
+              type: string
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

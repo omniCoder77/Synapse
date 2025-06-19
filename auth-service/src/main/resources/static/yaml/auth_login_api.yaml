@@ -1,0 +1,107 @@
+openapi: 3.0.0
+info:
+  title: Auth Login API
+  version: 1.0.0
+  description: API for user login and session management.
+servers:
+  - url: http://localhost:8080/auth
+    description: Base URL for authentication endpoints
+tags:
+  - name: Login
+    description: User login operations
+paths:
+  /login:
+    post:
+      summary: User Login
+      description: Authenticates a user with email, password, and device fingerprint. Can also handle MFA verification during login.
+      operationId: loginUser
+      parameters:
+        - name: Authorization
+          in: header
+          description: |
+            Optional. If present, this token indicates an ongoing MFA login flow (e.g., from a previous `MFALogin` or `NewDeviceLogin` response) and its claims (like `mfa_verified`) are used to determine login context.
+            **Note**: This header is also conceptually used to pass the password, which is a non-standard and insecure practice. For production, consider using `Basic` auth or placing password in the request body.
+          required: false
+          schema:
+            type: string
+            example: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... # Example JWT for MFA context
+      requestBody:
+        description: Login request payload including email, password, and device fingerprint.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              standardLogin:
+                summary: Standard Login
+                value:
+                  email: user@example.com
+                  password: "mySecurePassword123"
+                  deviceFingerprint: "device-id-123"
+      responses:
+        '200':
+          description: Successful login or further verification required.
+          content:
+            application/json:
+              schema:
+                type: string
+              examples:
+                credentialVerification:
+                  summary: Credential Verification Required
+                  value: "Verification link has been sent to your email address"
+                mfaLogin:
+                  summary: MFA Login Required
+                  value: "Enter the verification code from the authenticator app"
+                newDeviceLogin:
+                  summary: New Device Login Required
+                  value: "New device detected, enter the verification code from the authenticator app"
+                successfulLogin:
+                  summary: Successfully Logged In
+                  value: "Successfully logged in"
+          headers:
+            Authorization:
+              description: Bearer token for subsequent authenticated requests (on `Success`), or a token for MFA/New Device verification (on `MFALogin`, `NewDeviceLogin`).
+              schema:
+                type: string
+                example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... # Example JWT
+        '400':
+          description: Invalid credentials (email/password).
+          content:
+            application/json:
+              schema:
+                type: string
+              examples:
+                invalidCredentials:
+                  summary: Invalid Credentials
+                  value: "Invalid email/password"
+        '500':
+          description: Internal server error.
+components:
+  schemas:
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+        - deviceFingerprint
+      properties:
+        email:
+          type: string
+          format: email
+          description: The user's email address.
+          example: "user@example.com"
+        password:
+          type: string
+          format: password
+          description: The user's password.
+          example: "mySecurePassword123"
+        deviceFingerprint:
+          type: string
+          description: A unique identifier for the device making the login request.
+          example: "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

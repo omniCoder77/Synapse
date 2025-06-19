@@ -1,0 +1,191 @@
+openapi: 3.0.0
+info:
+  title: Auth Register API
+  version: 1.0.0
+  description: API for user registration.
+servers:
+  - url: http://localhost:8080/auth
+    description: Base URL for authentication endpoints
+tags:
+  - name: Registration
+    description: User registration operations
+paths:
+  /register:
+    post:
+      summary: Register a New User
+      operationId: registerUser
+      description: Registers a new user with the provided details. Can return an access token, an MFA QR code, or an error.
+      requestBody:
+        description: User registration request payload
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            examples:
+              successfulRegistration:
+                summary: Typical Registration
+                value:
+                  email: newuser@example.com
+                  password: StrongPassword123!
+                  deviceFingerprint: unique-device-id-xyz
+      responses:
+        '200':
+          description: |
+            Successful registration.
+            Can return:
+            - An `ApiResponse` with `AuthResponse` data (access and refresh tokens).
+            - An `ApiResponse` with base64 encoded MFA QR code (image/png) if 2FA is enabled during registration.
+          content:
+            application/json:
+              schema:
+                oneOf: # Response can be one of these ApiResponse types
+                  - $ref: '#/components/schemas/ApiResponseAuthResponse' # For token success
+                  - $ref: '#/components/schemas/ApiResponseMfaImage' # For MFA image success
+              examples:
+                successToken:
+                  summary: Successful Registration with Token
+                  value:
+                    status: SUCCESS
+                    data:
+                      accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                      refreshToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                      tokenType: bearer
+                      expiresIn: 300000
+                successMfaImage:
+                  summary: Successful Registration with MFA QR Code (Base64)
+                  value:
+                    status: SUCCESS
+                    data: "iVBORw0KGgoAAAANSUhEUgAAAQAAAAE..." # A base64 encoded string of the image
+          headers:
+            Authorization:
+              description: Bearer access token upon successful registration (only for `RegisterResult.Token`).
+              schema:
+                type: string
+                example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '400':
+          description: Bad request - Invalid input (e.g., password too weak) or email already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseError'
+              examples:
+                invalidInput:
+                  summary: Invalid Input (IllegalArgumentException)
+                  value:
+                    status: ERROR
+                    message: "Password too weak."
+                emailExists:
+                  summary: Email Already Exists (EmailExistsException)
+                  value:
+                    status: ERROR
+                    message: "Email address already registered."
+        '409':
+          description: Conflict - Data integrity issue (e.g., PSQLException due to unique constraint violation).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseError'
+              examples:
+                databaseConflict:
+                  summary: Database Conflict
+                  value:
+                    status: ERROR
+                    message: "duplicate key value violates unique constraint \"users_email_uk\""
+        '500':
+          description: Internal server error.
+components:
+  schemas:
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+        - deviceFingerprint
+      properties:
+        email:
+          type: string
+          format: email
+          description: The user's email address.
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          description: The user's desired password.
+          minLength: 8
+          example: SecurePassword123!
+        deviceFingerprint:
+          type: string
+          description: A unique identifier for the device making the registration request.
+          example: xyz-device-fingerprint-abc
+    AuthResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: JWT access token.
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        refreshToken:
+          type: string
+          description: JWT refresh token.
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        tokenType:
+          type: string
+          description: Type of the token (e.g., "bearer").
+          example: bearer
+        expiresIn:
+          type: integer
+          format: int64
+          description: Token expiration time in milliseconds.
+          example: 300000
+      required:
+        - accessToken
+        - refreshToken
+        - tokenType
+        - expiresIn
+    ApiResponse:
+      type: object
+      discriminator:
+        propertyName: status
+        mapping:
+          SUCCESS: '#/components/schemas/ApiResponseSuccess'
+          ERROR: '#/components/schemas/ApiResponseError'
+    ApiResponseSuccess:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ "SUCCESS" ]
+        data:
+          oneOf:
+            - $ref: '#/components/schemas/AuthResponse'
+            - type: string # For the MFA QR code as a base64 string
+      required:
+        - status
+        - data
+    ApiResponseError:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ "ERROR" ]
+        message:
+          type: string
+          description: Error message details.
+      required:
+        - status
+        - message
+    ApiResponseAuthResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseSuccess'
+        - properties:
+            data:
+              $ref: '#/components/schemas/AuthResponse'
+    ApiResponseMfaImage:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseSuccess'
+        - properties:
+            data:
+              type: string
+              description: Base64 encoded PNG image for MFA QR code.
+              example: "iVBORw0KGgoAAAANSUhEUgAAAQAAAAE..."

@@ -1,0 +1,38 @@
+POST http://localhost:8081/auth/register
+Content-Type: application/json
+
+{
+  "name": "Rishabh Saraswat",
+  "password": "#100Rishu",
+  "email": "rishabhsaraswat17@gmail.com",
+  "mfa": false,
+  "deviceFingerprint": "9r8uifdsjkncx,mfjruy4u3ieok",
+  "phoneNumber": "+917017093682",
+  "role": "USER"
+}
+
+###
+GET http://localhost:8081/auth/verify?token=6c5924e8-3a20-4c56-b7bc-f609620f2e1d
+
+###
+GET http://localhost:8081/auth/setup-2fa
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyMzhlN2RjYi0xY2NhLTRmZTQtYjZmMS1hYzJiMTBjNmQ2M2QiLCJpYXQiOjE3NDkxNDQzMzAsImV4cCI6MTc0OTIzMDczMH0.gUHTgp_FJ_JobbB0agu9ytsapCruKzvD2qS3ZlYkylY
+
+###
+POST http://localhost:8081/auth/verify-mfa?
+    code=845422
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyMzhlN2RjYi0xY2NhLTRmZTQtYjZmMS1hYzJiMTBjNmQ2M2QiLCJpYXQiOjE3NDkxNDQzMzAsImV4cCI6MTc0OTIzMDczMH0.gUHTgp_FJ_JobbB0agu9ytsapCruKzvD2qS3ZlYkylY
+Content-Type: application/x-www-form-urlencoded
+
+###
+POST http://localhost:8081/auth/login
+Content-Type: application/json
+
+{
+  "email": "rishabhsaraswat17@gmail.com",
+  "deviceFingerprint": "9r8dsfgjmfuy4u3ieok",
+  "password": "#100Rishu"
+}
+
+###
+GET http://localhost:8081/auth/verify-email?session=a2c6aa5e-a1bf-458e-a4ce-8234dc94a6d4

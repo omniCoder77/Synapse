@@ -1,0 +1,131 @@
+PUT http://localhost:8084/products/uiewokdmdspovksijfej
+Content-Type: application/json
+
+{
+  "name": "Ultra HD Smart TV 55\"",
+  "description": "Experience stunning 4K resolution with our Ultra HD Smart TV. Features HDR, built-in streaming apps, and voice control compatibility.",
+  "shortDescription": "55\" 4K Ultra HD Smart TV with HDR",
+  "sku": "TV55UHD-2024",
+  "barcode": "123456789012",
+  "brandId": "brnd-12345",
+  "pricing": {
+    "basePrice": 599,
+    "currency": "USD",
+    "taxIncluded": false,
+    "bulkPricing": [
+      {
+        "minQuantity": 3,
+        "price": 549
+      },
+      {
+        "minQuantity": 5,
+        "price": 499
+      }
+    ]
+  },
+  "inventory": {
+    "trackInventory": true,
+    "stockQuantity": 42,
+    "reservedQuantity": 5,
+    "lowStockThreshold": 10,
+    "outOfStockThreshold": 0,
+    "backorderAllowed": true,
+    "preorderAllowed": false,
+    "warehouseLocations": [
+      {
+        "warehouseId": "wh-001",
+        "quantity": 30,
+        "locationCode": "A12-5",
+        "warehouseName": "",
+        "reservedQuantity": 100
+      },
+      {
+        "warehouseId": "wh-002",
+        "quantity": 12,
+        "locationCode": "B7-2",
+        "warehouseName": "",
+        "reservedQuantity": 12
+      }
+    ]
+  },
+  "specifications": {
+    "customAttributes": {
+      "somename": "Energy Star Certified"
+    },
+    "technicalSpecs": "Screen Size: 55\", Resolution: 3840 x 2160, Refresh Rate: 120Hz, Ports: 4 HDMI, 2 USB",
+    "certifications": [],
+    "compatibleWith": [
+      "Amazon Alexa",
+      "Google Assistant"
+    ]
+  },
+  "media": {
+    "images": [
+    ],
+    "videos": [
+    ],
+    "documents": [
+    ]
+  },
+  "seo": {
+    "metaKeywords": [
+      "4K TV",
+      "Smart TV",
+      "55 inch TV",
+      "Ultra HD"
+    ],
+    "slug": "ultra-hd-smart-tv-55",
+    "structuredData": "{...json-ld data...}"
+  },
+  "shipping": {
+    "shippable": true,
+    "freeShipping": true,
+    "shippingRestrictions": [
+      "Alaska",
+      "Hawaii"
+    ],
+    "handlingTime": 2,
+    "packageType": "BOX",
+    "hazardousMaterial": false,
+    "requiresSignature": true
+  },
+  "tags": [
+    "featured",
+    "new-arrival",
+    "4k"
+  ],
+  "status": "ACTIVE",
+  "visibility": "PUBLIC",
+  "brandName": "TechVision",
+  "metadata": {
+    "warranty": "2 years",
+    "colorOptions": [
+      "Black",
+      "Silver"
+    ],
+    "externalIds": "",
+    "customFields": "",
+    "flags": []
+  },
+  "brandSlug": "techvision",
+  "categoryId": "cat-9876",
+  "categoryName": "Televisions",
+  "categoryPath": "Electronics/Televisions/Smart TVs",
+  "categorySlug": "televisions",
+  "sellerId": "seller-54321",
+  "sellerName": "ElectroWorld",
+  "sellerRating": 4.8,
+  "sellerVerified": true,
+  "averageRating": 4.6,
+  "totalReviews": 128,
+  "reviewsEnabled": true,
+  "variantCode": "TV55-BLK",
+  "createdAt": "2024-01-15T10:30:00Z",
+  "updatedAt": "2024-03-20T14:15:22Z",
+  "searchTerms": [
+    "smart tv",
+    "4k television",
+    "uhd display"
+  ],
+  "facets": "screen_size:55, resolution:4k, smart:yes"
+}
