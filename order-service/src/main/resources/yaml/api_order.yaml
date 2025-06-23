@@ -1,0 +1,445 @@
+openapi: 3.0.3
+info:
+  title: Order Management Service API
+  description: API for managing orders in the e-commerce system
+  version: 1.0.0
+  contact:
+    name: Synapse Order Service
+    email: support@synapse.com
+
+servers:
+  - url: http://localhost:8082
+    description: Local development server
+
+paths:
+  /api/orders:
+    post:
+      tags:
+        - Orders
+      summary: Create a new order
+      description: Creates a new order with the provided items, addresses, and payment method
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          description: The ID of the user creating the order
+          schema:
+            type: string
+          example: some-user-id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+            example:
+              items:
+                - id: "68591d9a253754716cab417c"
+                  amount: 2
+              shippingAddress:
+                street: "123 Main St"
+                city: "Anytown"
+                zipCode: "12345"
+                country: "USA"
+                state: ""
+                postalCode: ""
+              billingAddress:
+                street: "123 Main St"
+                city: "Anytown"
+                zipCode: "12345"
+                country: "USA"
+                state: ""
+                postalCode: ""
+              paymentMethod: "CASH_ON_DELIVERY"
+      responses:
+        '201':
+          description: Order created successfully
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: The tracking ID of the created order
+              example: "b26dc42c-a00d-49ec-842c-24aca055b336"
+        '400':
+          description: Bad request - Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/orders/{trackingId}:
+    get:
+      tags:
+        - Orders
+      summary: Get order by tracking ID
+      description: Retrieves order details by tracking ID. Only the order owner can view the order.
+      parameters:
+        - name: trackingId
+          in: path
+          required: true
+          description: The tracking ID of the order
+          schema:
+            type: string
+          example: "b26dc42c-a00d-49ec-842c-24aca055b336"
+        - name: userId
+          in: query
+          required: true
+          description: The ID of the user requesting the order
+          schema:
+            type: string
+          example: some-user-id
+      responses:
+        '200':
+          description: Order retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '403':
+          description: Forbidden - User does not have permission to view this order
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              example:
+                error: "You do not have permission to view this order."
+                statusCode: 403
+        '404':
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              example:
+                error: "Order not found."
+                statusCode: 404
+
+  /api/orders/{trackingId}/cancel:
+    post:
+      tags:
+        - Orders
+      summary: Cancel an order
+      description: Cancels an existing order. Only the order owner can cancel the order.
+      parameters:
+        - name: trackingId
+          in: path
+          required: true
+          description: The tracking ID of the order to cancel
+          schema:
+            type: string
+          example: "b26dc42c-a00d-49ec-842c-24aca055b336"
+        - name: userId
+          in: query
+          required: true
+          description: The ID of the user requesting the cancellation
+          schema:
+            type: string
+          example: some-user-id
+      responses:
+        '200':
+          description: Order cancelled successfully
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: "Order cancelled successfully."
+        '403':
+          description: Forbidden - User does not have permission to cancel this order
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: "You do not have permission to cancel this order."
+        '404':
+          description: Order not found
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: "Order not found."
+
+  /api/orders/{trackingId}/update:
+    patch:
+      tags:
+        - Orders
+      summary: Update order status
+      description: Updates the status of an existing order. Only the order owner can update the order.
+      parameters:
+        - name: trackingId
+          in: path
+          required: true
+          description: The tracking ID of the order to update
+          schema:
+            type: string
+          example: "b26dc42c-a00d-49ec-842c-24aca055b336"
+        - name: userId
+          in: query
+          required: true
+          description: The ID of the user requesting the update
+          schema:
+            type: string
+          example: some-user-id
+        - name: status
+          in: query
+          required: true
+          description: The new status for the order
+          schema:
+            $ref: '#/components/schemas/OrderStatus'
+      responses:
+        '200':
+          description: Order updated successfully
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: "Order updated successfully."
+        '403':
+          description: Forbidden - User does not have permission to update this order
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: "You do not have permission to update this order."
+        '404':
+          description: Order not found
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: "Order not found."
+
+components:
+  schemas:
+    CreateOrderRequest:
+      type: object
+      required:
+        - items
+        - shippingAddress
+        - billingAddress
+        - paymentMethod
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        shippingAddress:
+          $ref: '#/components/schemas/Address'
+        billingAddress:
+          $ref: '#/components/schemas/Address'
+        paymentMethod:
+          $ref: '#/components/schemas/PaymentMethod'
+
+    OrderItem:
+      type: object
+      required:
+        - id
+        - amount
+      properties:
+        id:
+          type: string
+          description: Product ID
+          example: "68591d9a253754716cab417c"
+        amount:
+          type: integer
+          minimum: 1
+          description: Quantity of the product
+          example: 2
+
+    Address:
+      type: object
+      required:
+        - street
+        - city
+        - country
+      properties:
+        street:
+          type: string
+          example: "123 Main St"
+        city:
+          type: string
+          example: "Anytown"
+        state:
+          type: string
+          example: ""
+        zipCode:
+          type: string
+          example: "12345"
+        postalCode:
+          type: string
+          example: ""
+        country:
+          type: string
+          example: "USA"
+
+    PaymentMethod:
+      type: string
+      enum:
+        - CASH_ON_DELIVERY
+        - CREDIT_CARD
+        - DEBIT_CARD
+        - PAYPAL
+        - BANK_TRANSFER
+      example: CASH_ON_DELIVERY
+
+    OrderStatus:
+      type: string
+      enum:
+        - PENDING
+        - CONFIRMED
+        - PROCESSING
+        - SHIPPED
+        - DELIVERED
+        - CANCELLED
+        - REFUNDED
+      example: PENDING
+
+    PaymentStatus:
+      type: string
+      enum:
+        - PENDING
+        - PAID
+        - FAILED
+        - REFUNDED
+      example: PENDING
+
+    Money:
+      type: object
+      properties:
+        amount:
+          type: number
+          format: double
+          example: 499.98
+        currency:
+          type: string
+          example: "IN"
+
+    OrderItemDetail:
+      type: object
+      properties:
+        productId:
+          type: string
+          example: "68591d9a253754716cab417c"
+        name:
+          type: string
+          example: "Apple AirPods Pro (2nd Generation)"
+        quantity:
+          type: integer
+          example: 2
+        unitPrice:
+          $ref: '#/components/schemas/Money'
+        discount:
+          $ref: '#/components/schemas/Money'
+        tax:
+          $ref: '#/components/schemas/Money'
+        imageUrl:
+          type: string
+          format: uri
+          example: "https://example.com/images/airpods-pro-front.jpg"
+
+    OrderPricing:
+      type: object
+      properties:
+        subtotal:
+          $ref: '#/components/schemas/Money'
+        tax:
+          $ref: '#/components/schemas/Money'
+        shippingCost:
+          $ref: '#/components/schemas/Money'
+        discount:
+          $ref: '#/components/schemas/Money'
+        total:
+          $ref: '#/components/schemas/Money'
+
+    OrderMetadata:
+      type: object
+      properties:
+        cartId:
+          type: string
+          nullable: true
+          example: null
+        notes:
+          type: string
+          nullable: true
+          example: null
+        customFields:
+          type: object
+          additionalProperties: true
+          example: {}
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "8d7f2428-a14d-4e9e-b0cf-0dd43a837dac"
+        userId:
+          type: string
+          example: "some-user-id"
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItemDetail'
+        pricing:
+          $ref: '#/components/schemas/OrderPricing'
+        shippingAddress:
+          $ref: '#/components/schemas/Address'
+        billingAddress:
+          $ref: '#/components/schemas/Address'
+        paymentMethod:
+          $ref: '#/components/schemas/PaymentMethod'
+        paymentStatus:
+          $ref: '#/components/schemas/PaymentStatus'
+        trackingId:
+          type: string
+          example: "b26dc42c-a00d-49ec-842c-24aca055b336"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-06-23T09:41:33.616320Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2025-06-23T09:41:33.616360Z"
+        metadata:
+          $ref: '#/components/schemas/OrderMetadata'
+
+    OrderResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Order'
+
+    ApiErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Order not found."
+        statusCode:
+          type: integer
+          example: 404
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Invalid request data"
+        timestamp:
+          type: string
+          format: date-time
+        path:
+          type: string
+          example: "/api/orders"
+
+tags:
+  - name: Orders
+    description: Order management operations

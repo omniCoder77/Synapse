@@ -7,6 +7,7 @@ build/
 
 ### STS ###
 .apt_generated
+/src/main/resources/http
 .classpath
 .factorypath
 .project

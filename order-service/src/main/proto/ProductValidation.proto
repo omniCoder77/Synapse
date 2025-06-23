@@ -1,0 +1,32 @@
+syntax="proto3";
+package com.ethyllium.productservice.infrastructure.web.grpc;
+option java_multiple_files = true;
+
+service ProductValidationService {
+  rpc validate(ProductValidationRequest) returns (ProductValidationResponse) {}
+}
+
+message ProductValidationRequest {
+  repeated ProductsRequest productRequest = 1;
+}
+
+message ProductsRequest {
+  string id = 1;
+  int32 quantity = 2;
+}
+
+message ProductValidationResponse {
+  repeated ProductResponse productResponse = 1;
+}
+
+message ProductResponse {
+  bool isInStock = 1;
+  bool doesExist = 2;
+  double amount = 3;
+  string id = 4;
+  int32 quantity = 5;
+  string name = 6;
+  string imageUrl = 7;
+  double tax = 8;
+  double discount = 9;
+}
