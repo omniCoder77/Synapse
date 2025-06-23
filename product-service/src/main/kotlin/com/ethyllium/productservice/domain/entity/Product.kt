@@ -351,3 +351,18 @@ enum class AccountType {
 enum class ProductFlag {
     FEATURED, BESTSELLER, NEW_ARRIVAL, ON_SALE, LIMITED_EDITION, EXCLUSIVE;
 }
+
+enum class TaxClass(val percentage: Double) {
+    EXEMPT(0.0),
+
+    FIVE_PERCENT_GST(5.0),
+
+    TWELVE_PERCENT_GST(12.0),
+
+    EIGHTEEN_PERCENT_GST(18.0),
+
+    TWENTY_EIGHT_PERCENT_GST(28.0),
+
+    GOLD_THREE_PERCENT_GST(3.0),
+    UNCATEGORIZED(0.0);
+}

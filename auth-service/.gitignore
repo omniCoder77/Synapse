@@ -12,6 +12,7 @@ build/
 .springBeans
 .sts4-cache
 bin/
+/src/main/resources/http
 !**/src/main/**/bin/
 !**/src/test/**/bin/
 .idea

@@ -1,0 +1,965 @@
+openapi: 3.0.3
+info:
+  title: Product Management Service API
+  description: API for managing products in the e-commerce system
+  version: 1.0.0
+  contact:
+    name: Ethyllium Product Service
+    email: support@ethyllium.com
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  /products:
+    post:
+      tags:
+        - Products
+      summary: Create a new product
+      description: Creates a new product. Requires SELLER role.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: X-User-Id
+          in: header
+          required: true
+          description: The ID of the seller creating the product
+          schema:
+            type: string
+          example: "seller-123"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProductRequest'
+      responses:
+        '201':
+          description: Product created successfully
+          headers:
+            Location:
+              description: URL of the created product
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseString'
+              example:
+                success: true
+                message: "Product created successfully"
+                data: "product-id-123"
+        '400':
+          description: Bad request - Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseError'
+        '401':
+          description: Unauthorized - Missing or invalid authentication
+        '403':
+          description: Forbidden - Insufficient permissions (SELLER role required)
+
+  /products/{id}:
+    get:
+      tags:
+        - Products
+      summary: Get product by ID
+      description: Retrieves product details by product ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The product ID
+          schema:
+            type: string
+          example: "product-123"
+      responses:
+        '200':
+          description: Product retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ProductResponse'
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseError'
+
+    put:
+      tags:
+        - Products
+      summary: Update product
+      description: Updates an existing product. Requires SELLER role and ownership.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The product ID
+          schema:
+            type: string
+          example: "product-123"
+        - name: X-User-Id
+          in: header
+          required: true
+          description: The ID of the seller updating the product
+          schema:
+            type: string
+          example: "seller-123"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProductRequest'
+      responses:
+        '200':
+          description: Product updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseString'
+        '403':
+          description: Forbidden - User does not own this product
+        '404':
+          description: Product not found
+
+    delete:
+      tags:
+        - Products
+      summary: Delete product
+      description: Deletes a product. Requires SELLER role and ownership.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The product ID
+          schema:
+            type: string
+          example: "product-123"
+        - name: X-User-Id
+          in: header
+          required: true
+          description: The ID of the seller deleting the product
+          schema:
+            type: string
+          example: "seller-123"
+      responses:
+        '200':
+          description: Product deleted successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        nullable: true
+        '403':
+          description: Forbidden - User does not own this product
+        '404':
+          description: Product not found
+
+  /products/{id}/status:
+    patch:
+      tags:
+        - Products
+      summary: Update product status
+      description: Updates the status of a product. Requires SELLER role and ownership.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The product ID
+          schema:
+            type: string
+          example: "product-123"
+        - name: status
+          in: query
+          required: true
+          description: The new status for the product
+          schema:
+            $ref: '#/components/schemas/ProductStatus'
+        - name: X-User-Id
+          in: header
+          required: true
+          description: The ID of the seller updating the product
+          schema:
+            type: string
+          example: "seller-123"
+      responses:
+        '200':
+          description: Product status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseString'
+        '403':
+          description: Forbidden - User does not own this product
+        '404':
+          description: Product not found
+
+  /products/{id}/visibility:
+    patch:
+      tags:
+        - Products
+      summary: Update product visibility
+      description: Updates the visibility of a product. Requires SELLER role and ownership.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The product ID
+          schema:
+            type: string
+          example: "product-123"
+        - name: visibility
+          in: query
+          required: true
+          description: The new visibility for the product
+          schema:
+            $ref: '#/components/schemas/ProductVisibility'
+        - name: X-User-Id
+          in: header
+          required: true
+          description: The ID of the seller updating the product
+          schema:
+            type: string
+          example: "seller-123"
+      responses:
+        '200':
+          description: Product visibility updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseString'
+        '403':
+          description: Forbidden - User does not own this product
+        '404':
+          description: Product not found
+
+  /products/{id}/archive:
+    post:
+      tags:
+        - Products
+      summary: Archive product
+      description: Archives a product. Requires SELLER role and ownership.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The product ID
+          schema:
+            type: string
+          example: "product-123"
+        - name: X-User-Id
+          in: header
+          required: true
+          description: The ID of the seller archiving the product
+          schema:
+            type: string
+          example: "seller-123"
+      responses:
+        '200':
+          description: Product archived successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseString'
+        '403':
+          description: Forbidden - User does not own this product
+        '404':
+          description: Product not found
+
+  /products/{id}/restore:
+    post:
+      tags:
+        - Products
+      summary: Restore product
+      description: Restores an archived product. Requires SELLER role and ownership.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The product ID
+          schema:
+            type: string
+          example: "product-123"
+        - name: X-User-Id
+          in: header
+          required: true
+          description: The ID of the seller restoring the product
+          schema:
+            type: string
+          example: "seller-123"
+      responses:
+        '200':
+          description: Product restored successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseString'
+        '403':
+          description: Forbidden - User does not own this product
+        '404':
+          description: Product not found
+
+  /products/{id}/exists:
+    get:
+      tags:
+        - Products
+      summary: Check if product exists
+      description: Checks whether a product exists by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The product ID
+          schema:
+            type: string
+          example: "product-123"
+      responses:
+        '200':
+          description: Product existence check completed
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        type: boolean
+              example:
+                success: true
+                message: null
+                data: true
+
+  /products/sku/{sku}:
+    get:
+      tags:
+        - Products
+      summary: Get product by SKU
+      description: Retrieves product details by SKU
+      parameters:
+        - name: sku
+          in: path
+          required: true
+          description: The product SKU
+          schema:
+            type: string
+          example: "SKU-123-ABC"
+      responses:
+        '200':
+          description: Product retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ProductResponse'
+        '404':
+          description: Product not found
+
+  /products/seller/{sellerId}:
+    get:
+      tags:
+        - Products
+      summary: Get products by seller
+      description: Retrieves paginated list of products for a specific seller
+      parameters:
+        - name: sellerId
+          in: path
+          required: true
+          description: The seller ID
+          schema:
+            type: string
+          example: "seller-123"
+        - name: page
+          in: query
+          description: Page number (0-based)
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          example: 0
+        - name: size
+          in: query
+          description: Page size
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          example: 20
+        - name: sortBy
+          in: query
+          description: Field to sort by
+          schema:
+            type: string
+            default: "createdAt"
+          example: "createdAt"
+        - name: sortDir
+          in: query
+          description: Sort direction
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: "desc"
+          example: "desc"
+        - name: status
+          in: query
+          description: Filter by product status
+          schema:
+            $ref: '#/components/schemas/ProductStatus'
+      responses:
+        '200':
+          description: Products retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PageProductSummaryResponse'
+
+  /products/category/{categoryId}:
+    get:
+      tags:
+        - Products
+      summary: Get products by category
+      description: Retrieves paginated list of products for a specific category
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          description: The category ID
+          schema:
+            type: string
+          example: "category-123"
+        - name: page
+          in: query
+          description: Page number (0-based)
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          description: Page size
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: sortBy
+          in: query
+          description: Field to sort by
+          schema:
+            type: string
+            default: "createdAt"
+        - name: sortDir
+          in: query
+          description: Sort direction
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: "desc"
+      responses:
+        '200':
+          description: Products retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PageProductSummaryResponse'
+
+  /products/brand/{brandId}:
+    get:
+      tags:
+        - Products
+      summary: Get products by brand
+      description: Retrieves paginated list of products for a specific brand
+      parameters:
+        - name: brandId
+          in: path
+          required: true
+          description: The brand ID
+          schema:
+            type: string
+          example: "brand-123"
+        - name: page
+          in: query
+          description: Page number (0-based)
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          description: Page size
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: sortBy
+          in: query
+          description: Field to sort by
+          schema:
+            type: string
+            default: "createdAt"
+        - name: sortDir
+          in: query
+          description: Sort direction
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: "desc"
+      responses:
+        '200':
+          description: Products retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PageProductSummaryResponse'
+
+  /products/bulk:
+    post:
+      tags:
+        - Products
+        - Bulk Operations
+      summary: Create products in bulk
+      description: Creates multiple products at once. Requires ADMIN role.
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CreateProductRequest'
+      responses:
+        '201':
+          description: Products created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseString'
+        '400':
+          description: Bad request - Invalid input data
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - ADMIN role required
+
+    delete:
+      tags:
+        - Products
+        - Bulk Operations
+      summary: Delete products in bulk
+      description: Deletes multiple products at once. Requires ADMIN role.
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+              example: ["product-1", "product-2", "product-3"]
+      responses:
+        '200':
+          description: Products deleted successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseBase'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        nullable: true
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - ADMIN role required
+
+  /products/bulk/status:
+    patch:
+      tags:
+        - Products
+        - Bulk Operations
+      summary: Update product status in bulk
+      description: Updates the status of multiple products at once. Requires ADMIN role.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: status
+          in: query
+          required: true
+          description: The new status for all products
+          schema:
+            $ref: '#/components/schemas/ProductStatus'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+              example: ["product-1", "product-2", "product-3"]
+      responses:
+        '200':
+          description: Products status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseString'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - ADMIN role required
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-User-Id
+
+  schemas:
+    ProductStatus:
+      type: string
+      enum:
+        - ACTIVE
+        - INACTIVE
+        - DRAFT
+        - OUT_OF_STOCK
+        - DISCONTINUED
+        - PENDING_APPROVAL
+      example: ACTIVE
+
+    ProductVisibility:
+      type: string
+      enum:
+        - PUBLIC
+        - PRIVATE
+        - HIDDEN
+      example: PUBLIC
+
+    CreateProductRequest:
+      type: object
+      required:
+        - name
+        - description
+        - price
+        - categoryId
+        - brandId
+        - sku
+      properties:
+        name:
+          type: string
+          example: "Apple iPhone 15 Pro"
+        description:
+          type: string
+          example: "Latest iPhone with advanced camera system"
+        price:
+          type: number
+          format: double
+          minimum: 0
+          example: 999.99
+        categoryId:
+          type: string
+          example: "category-123"
+        brandId:
+          type: string
+          example: "brand-456"
+        sku:
+          type: string
+          example: "IPHONE-15-PRO-128"
+        imageUrls:
+          type: array
+          items:
+            type: string
+            format: uri
+          example: ["https://example.com/image1.jpg", "https://example.com/image2.jpg"]
+        specifications:
+          type: object
+          additionalProperties: true
+          example:
+            storage: "128GB"
+            color: "Natural Titanium"
+            display: "6.1-inch Super Retina XDR"
+        tags:
+          type: array
+          items:
+            type: string
+          example: ["smartphone", "apple", "premium"]
+        weight:
+          type: number
+          format: double
+          example: 187.0
+        dimensions:
+          type: object
+          properties:
+            length:
+              type: number
+              format: double
+            width:
+              type: number
+              format: double
+            height:
+              type: number
+              format: double
+          example:
+            length: 159.9
+            width: 76.7
+            height: 8.25
+        status:
+          $ref: '#/components/schemas/ProductStatus'
+        visibility:
+          $ref: '#/components/schemas/ProductVisibility'
+
+    UpdateProductRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          format: double
+          minimum: 0
+        categoryId:
+          type: string
+        brandId:
+          type: string
+        imageUrls:
+          type: array
+          items:
+            type: string
+            format: uri
+        specifications:
+          type: object
+          additionalProperties: true
+        tags:
+          type: array
+          items:
+            type: string
+        weight:
+          type: number
+          format: double
+        dimensions:
+          type: object
+          properties:
+            length:
+              type: number
+              format: double
+            width:
+              type: number
+              format: double
+            height:
+              type: number
+              format: double
+
+    ProductResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "product-123"
+        name:
+          type: string
+          example: "Apple iPhone 15 Pro"
+        description:
+          type: string
+          example: "Latest iPhone with advanced camera system"
+        price:
+          type: number
+          format: double
+          example: 999.99
+        categoryId:
+          type: string
+          example: "category-123"
+        brandId:
+          type: string
+          example: "brand-456"
+        sellerId:
+          type: string
+          example: "seller-123"
+        sku:
+          type: string
+          example: "IPHONE-15-PRO-128"
+        status:
+          $ref: '#/components/schemas/ProductStatus'
+        visibility:
+          $ref: '#/components/schemas/ProductVisibility'
+        imageUrls:
+          type: array
+          items:
+            type: string
+            format: uri
+        specifications:
+          type: object
+          additionalProperties: true
+        tags:
+          type: array
+          items:
+            type: string
+        weight:
+          type: number
+          format: double
+        dimensions:
+          type: object
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-06-24T10:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2025-06-24T10:00:00Z"
+
+    ProductSummaryResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        price:
+          type: number
+          format: double
+        sku:
+          type: string
+        status:
+          $ref: '#/components/schemas/ProductStatus'
+        visibility:
+          $ref: '#/components/schemas/ProductVisibility'
+        primaryImageUrl:
+          type: string
+          format: uri
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PageProductSummaryResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductSummaryResponse'
+        pageable:
+          type: object
+          properties:
+            pageNumber:
+              type: integer
+            pageSize:
+              type: integer
+            sort:
+              type: object
+        totalElements:
+          type: integer
+        totalPages:
+          type: integer
+        last:
+          type: boolean
+        first:
+          type: boolean
+        size:
+          type: integer
+        number:
+          type: integer
+        numberOfElements:
+          type: integer
+        empty:
+          type: boolean
+
+    ApiResponseBase:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          nullable: true
+          example: "Operation completed successfully"
+
+    ApiResponseString:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseBase'
+        - type: object
+          properties:
+            data:
+              type: string
+
+    ApiResponseError:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Error occurred"
+        data:
+          type: object
+          nullable: true
+
+tags:
+  - name: Products
+    description: Product management operations
+  - name: Bulk Operations
+    description: Bulk operations for products (Admin only)

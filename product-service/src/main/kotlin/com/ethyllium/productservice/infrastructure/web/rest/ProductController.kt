@@ -32,8 +32,7 @@ class ProductController(
     @PostMapping
     @RequireRoles(["SELLER"])
     fun createProduct(
-        @Valid @RequestBody request: CreateProductRequest,
-        @RequestHeader("X-User-Id") sellerId: String
+        @Valid @RequestBody request: CreateProductRequest, @RequestHeader("X-User-Id") sellerId: String
     ): ResponseEntity<ApiResponse<String>> {
         val productId = productService.createProduct(request, sellerId)
         val location = URI.create("/products/${productId}")
@@ -49,12 +48,14 @@ class ProductController(
     @PutMapping("/{id}")
     @RequireRoles(["SELLER"])
     fun updateProduct(
-        @PathVariable id: String, @Valid @RequestBody request: UpdateProductRequest, @RequestHeader("X-User-Id") sellerId: String
-    ): ResponseEntity<ApiResponse<ProductResponse>> {
+        @PathVariable id: String,
+        @Valid @RequestBody request: UpdateProductRequest,
+        @RequestHeader("X-User-Id") sellerId: String
+    ): ResponseEntity<ApiResponse<String>> {
         if (!productService.isSellerOwner(sellerId, id)) return ResponseEntity.status(HttpStatus.FORBIDDEN)
             .body(ApiResponse.error("You do not have permission to update this product"))
-        val product = productService.updateProduct(id, request)
-        return ResponseEntity.ok(ApiResponse.success(product, "Product updated successfully"))
+        productService.updateProduct(id, request)
+        return ResponseEntity.ok(ApiResponse.success("Product updated successfully"))
     }
 
     @PatchMapping("/{id}/status")
@@ -62,7 +63,7 @@ class ProductController(
     fun updateProductStatus(
         @PathVariable id: String, @RequestParam status: ProductStatus, @RequestHeader("X-User-Id") sellerId: String
     ): ResponseEntity<ApiResponse<String>> {
-                if (!productService.isSellerOwner(sellerId, id)) return ResponseEntity.status(HttpStatus.FORBIDDEN)
+        if (!productService.isSellerOwner(sellerId, id)) return ResponseEntity.status(HttpStatus.FORBIDDEN)
             .body(ApiResponse.error("You do not have permission to update this product"))
         val product = productService.updateProductStatus(id, status)
         return ResponseEntity.ok(ApiResponse.success(product, "Product status updated successfully"))
@@ -71,9 +72,11 @@ class ProductController(
     @PatchMapping("/{id}/visibility")
     @RequireRoles(["SELLER"])
     fun updateProductVisibility(
-        @PathVariable id: String, @RequestParam visibility: ProductVisibility, @RequestHeader("X-User-Id") sellerId: String
+        @PathVariable id: String,
+        @RequestParam visibility: ProductVisibility,
+        @RequestHeader("X-User-Id") sellerId: String
     ): ResponseEntity<ApiResponse<String>> {
-                if (!productService.isSellerOwner(sellerId, id)) return ResponseEntity.status(HttpStatus.FORBIDDEN)
+        if (!productService.isSellerOwner(sellerId, id)) return ResponseEntity.status(HttpStatus.FORBIDDEN)
             .body(ApiResponse.error("You do not have permission to update this product"))
         val product = productService.updateProductVisibility(id, visibility)
         return ResponseEntity.ok(ApiResponse.success(product, "Product visibility updated successfully"))
@@ -81,8 +84,11 @@ class ProductController(
 
     @DeleteMapping("/{id}")
     @RequireRoles(["SELLER"])
-    fun deleteProduct(@PathVariable id: String, @RequestHeader("X-User-Id") sellerId: String): ResponseEntity<ApiResponse<Unit>> {
-                if (!productService.isSellerOwner(sellerId, id)) return ResponseEntity.status(HttpStatus.FORBIDDEN)
+    fun deleteProduct(
+        @PathVariable id: String,
+        @RequestHeader("X-User-Id") sellerId: String
+    ): ResponseEntity<ApiResponse<Unit>> {
+        if (!productService.isSellerOwner(sellerId, id)) return ResponseEntity.status(HttpStatus.FORBIDDEN)
             .body(ApiResponse.error("You do not have permission to update this product"))
         productService.deleteProduct(id)
         return ResponseEntity.ok(ApiResponse.success(Unit, "Product deleted successfully"))
@@ -90,8 +96,11 @@ class ProductController(
 
     @PostMapping("/{id}/archive")
     @RequireRoles(["SELLER"])
-    fun archiveProduct(@PathVariable id: String, @RequestHeader("X-User-Id") sellerId: String): ResponseEntity<ApiResponse<String>> {
-                if (!productService.isSellerOwner(sellerId, id)) return ResponseEntity.status(HttpStatus.FORBIDDEN)
+    fun archiveProduct(
+        @PathVariable id: String,
+        @RequestHeader("X-User-Id") sellerId: String
+    ): ResponseEntity<ApiResponse<String>> {
+        if (!productService.isSellerOwner(sellerId, id)) return ResponseEntity.status(HttpStatus.FORBIDDEN)
             .body(ApiResponse.error("You do not have permission to update this product"))
         val product = productService.archiveProduct(id)
         return ResponseEntity.ok(ApiResponse.success(product, "Product archived successfully"))
@@ -99,8 +108,11 @@ class ProductController(
 
     @PostMapping("/{id}/restore")
     @RequireRoles(["SELLER"])
-    fun restoreProduct(@PathVariable id: String, @RequestHeader("X-User-Id") sellerId: String): ResponseEntity<ApiResponse<String>> {
-                if (!productService.isSellerOwner(sellerId, id)) return ResponseEntity.status(HttpStatus.FORBIDDEN)
+    fun restoreProduct(
+        @PathVariable id: String,
+        @RequestHeader("X-User-Id") sellerId: String
+    ): ResponseEntity<ApiResponse<String>> {
+        if (!productService.isSellerOwner(sellerId, id)) return ResponseEntity.status(HttpStatus.FORBIDDEN)
             .body(ApiResponse.error("You do not have permission to update this product"))
         val product = productService.restoreProduct(id)
         return ResponseEntity.ok(ApiResponse.success(product, "Product restored successfully"))

@@ -1,4 +1,4 @@
-package com.ethyllium.productservice.config
+package com.ethyllium.productservice.application.config
 
 import io.github.bucket4j.Bandwidth
 import io.github.bucket4j.Bucket

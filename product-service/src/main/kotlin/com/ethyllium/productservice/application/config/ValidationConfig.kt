@@ -1,4 +1,4 @@
-package com.ethyllium.productservice.config;
+package com.ethyllium.productservice.application.config
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

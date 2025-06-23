@@ -1,0 +1,8 @@
+PUT http://localhost:8084/products/68591d9a253754716cab417c
+X-User-Id: Some-User_id
+X-User-Role: SELLER
+Content-Type: application/json
+
+{
+  "name": "Apple AirPods Pro (second Generation)"
+}

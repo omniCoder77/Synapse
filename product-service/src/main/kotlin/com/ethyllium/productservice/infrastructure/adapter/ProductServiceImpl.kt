@@ -81,7 +81,6 @@ class ProductServiceImpl(
         }
     }
 
-    @Cacheable(value = ["products"], key = "#id")
     @Transactional(readOnly = true)
     override fun getProductById(id: String): ProductResponse {
         logger.debug("Fetching product by ID: {}", id)
@@ -137,7 +136,6 @@ class ProductServiceImpl(
         return products.map { it.toSummaryResponse() }
     }
 
-    @CachePut(value = ["products"], key = "#id")
     @Transactional
     override fun updateProduct(id: String, request: UpdateProductRequest): ProductResponse {
         logger.info("Updating product with ID: {}", id)
@@ -205,7 +203,6 @@ class ProductServiceImpl(
         }
     }
 
-    @CachePut(value = ["products"], key = "#id")
     @Transactional
     override fun updateProductStatus(id: String, status: ProductStatus): String {
         logger.info("Updating product status to {} for ID: {}", status, id)
@@ -225,7 +222,6 @@ class ProductServiceImpl(
         return "Product status updated successfully for ID: $id"
     }
 
-    @CachePut(value = ["products"], key = "#id")
     @Transactional
     override fun updateProductVisibility(id: String, visibility: ProductVisibility): String {
         logger.info("Updating product visibility to {} for ID: {}", visibility, id)
@@ -272,7 +268,6 @@ class ProductServiceImpl(
         return "Product status updated successfully"
     }
 
-    @CacheEvict(value = ["products"], key = "#id")
     @Transactional
     override fun deleteProduct(id: String) {
         logger.info("Deleting product with ID: {}", id)
@@ -307,14 +302,12 @@ class ProductServiceImpl(
         logger.info("Successfully deleted {} products", productIds.size)
     }
 
-    @CachePut(value = ["products"], key = "#id")
     @Transactional
     override fun archiveProduct(id: String): String {
         updateProductStatus(id, ProductStatus.ARCHIVED)
         return "Product archived successfully for ID: $id"
     }
 
-    @CachePut(value = ["products"], key = "#id")
     @Transactional
     override fun restoreProduct(id: String): String {
         updateProductStatus(id, ProductStatus.ACTIVE)

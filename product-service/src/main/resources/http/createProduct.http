@@ -1,131 +1,212 @@
-PUT http://localhost:8084/products/uiewokdmdspovksijfej
+POST http://localhost:8084/products?sellerId=43645879yuiokhlnmbhvgfytre65487yi
 Content-Type: application/json
+X-User-Id: Some-User_id
 
 {
-  "name": "Ultra HD Smart TV 55\"",
-  "description": "Experience stunning 4K resolution with our Ultra HD Smart TV. Features HDR, built-in streaming apps, and voice control compatibility.",
-  "shortDescription": "55\" 4K Ultra HD Smart TV with HDR",
-  "sku": "TV55UHD-2024",
-  "barcode": "123456789012",
-  "brandId": "brnd-12345",
+  "name": "Apple AirPods Pro (2nd Generation)",
+  "description": "The latest AirPods Pro deliver advanced Active Noise Cancellation, Adaptive Transparency, and personalized spatial audio for an immersive listening experience. Featuring a redesigned case with Precision Finding and MagSafe charging.",
+  "shortDescription": "Premium wireless earbuds with ANC and MagSafe charging",
+  "sku": "APL-MLWK3AMA",
+  "barcode": "194252708990",
+  "brandName": "Apple",
+  "categoryName": "Electronics",
+  "categoryPath": "Electronics > Audio > Headphones > Wireless Earbuds",
   "pricing": {
-    "basePrice": 599,
+    "basePrice": 249.99,
     "currency": "USD",
     "taxIncluded": false,
     "bulkPricing": [
       {
-        "minQuantity": 3,
-        "price": 549
-      },
-      {
-        "minQuantity": 5,
-        "price": 499
+        "minQty": 3,
+        "price": 229.99,
+        "discountType": "FIXED"
       }
-    ]
+    ],
+    "costPrice": 180.00,
+    "priceValidFrom": 1664064000000,
+    "priceValidTo": 1735689600000,
+    "salePrice": 229.99,
+    "taxClass": "EXEMPT"
   },
   "inventory": {
     "trackInventory": true,
-    "stockQuantity": 42,
-    "reservedQuantity": 5,
+    "stockQuantity": 125,
+    "reservedQuantity": 15,
     "lowStockThreshold": 10,
     "outOfStockThreshold": 0,
     "backorderAllowed": true,
     "preorderAllowed": false,
     "warehouseLocations": [
       {
-        "warehouseId": "wh-001",
-        "quantity": 30,
-        "locationCode": "A12-5",
+        "warehouseId": "WH-001",
+        "quantity": 75,
+        "location": "A12-B5",
         "warehouseName": "",
-        "reservedQuantity": 100
+        "reservedQuantity": 400
       },
       {
-        "warehouseId": "wh-002",
-        "quantity": 12,
-        "locationCode": "B7-2",
+        "warehouseId": "WH-002",
+        "quantity": 50,
+        "location": "C8-D2",
         "warehouseName": "",
-        "reservedQuantity": 12
+        "reservedQuantity": 450
       }
-    ]
+    ],
+    "stockStatus": "IN_STOCK"
   },
   "specifications": {
     "customAttributes": {
-      "somename": "Energy Star Certified"
+      "color": "white",
+      "modelYear": "2022",
+      "waterResistant": "IPX4"
     },
-    "technicalSpecs": "Screen Size: 55\", Resolution: 3840 x 2160, Refresh Rate: 120Hz, Ports: 4 HDMI, 2 USB",
-    "certifications": [],
+    "technicalSpecs": {
+      "driverType": "Apple-designed dynamic driver",
+      "frequencyResponse": "20Hz-20kHz",
+      "bluetoothVersion": "5.3",
+      "batteryLife": "6 hours (ANC on), 30 hours with case",
+      "chargingPort": "Lightning/MagSafe",
+      "microphones": "3 per earbud"
+    },
+    "certifications": [
+      {
+        "name": "FCC Certification",
+        "issuedBy": "Federal Communications Commission",
+        "certificateNumber": "FCC-12345-AB",
+        "validFrom": 1640995200000,
+        "validTo": 1776038400000
+      },
+      {
+        "name": "CE Marking",
+        "issuedBy": "European Commission",
+        "certificateNumber": "CE-67890-XY",
+        "validFrom": 1635724800000,
+        "validTo": 1769980800000
+      },
+      {
+        "name": "RoHS Compliance",
+        "issuedBy": "International Electrotechnical Commission",
+        "certificateNumber": "IEC-RoHS-2022-543",
+        "validFrom": 1648771200000,
+        "validTo": 1783900800000
+      },
+      {
+        "name": "IPX4 Water Resistance",
+        "issuedBy": "International Protection Marking",
+        "certificateNumber": "IPX4-APPLE-2023",
+        "validFrom": 1672531200000,
+        "validTo": 1704067200000
+      }
+    ],
     "compatibleWith": [
-      "Amazon Alexa",
-      "Google Assistant"
-    ]
+      "iPhone",
+      "iPad",
+      "Mac",
+      "Apple Watch",
+      "Android"
+    ],
+    "color": "White",
+    "dimensions": {
+      "length": 1.22,
+      "width": 0.86,
+      "height": 0.94,
+      "unit": "IN"
+    },
+    "material": "Plastic, Metal",
+    "weight": {
+      "value": 5.3,
+      "unit": "G"
+    }
   },
   "media": {
     "images": [
+      {
+        "url": "https://example.com/images/airpods-pro-front.jpg",
+        "altText": "AirPods Pro front view",
+        "sortOrder": 1,
+        "type": "GALLERY"
+      },
+      {
+        "url": "https://example.com/images/airpods-pro-side.jpg",
+        "altText": "AirPods Pro side view",
+        "sortOrder": 0,
+        "type": "GALLERY"
+      }
     ],
     "videos": [
+      {
+        "url": "https://example.com/videos/airpods-pro-demo.mp4",
+        "thumbnail": "https://example.com/videos/airpods-pro-thumb.jpg",
+        "type": "PRODUCT_DEMO"
+      }
     ],
     "documents": [
-    ]
+      {
+        "id": "doc1",
+        "url": "https://example.com/documents/airpods-pro-manual.pdf",
+        "title": "User Manual",
+        "name": "User Manual",
+        "type": "MANUAL"
+      }
+    ],
+    "primaryImageId": "1"
   },
   "seo": {
     "metaKeywords": [
-      "4K TV",
-      "Smart TV",
-      "55 inch TV",
-      "Ultra HD"
+      "wireless earbuds",
+      "noise cancelling",
+      "Apple",
+      "AirPods",
+      "bluetooth headphones"
     ],
-    "slug": "ultra-hd-smart-tv-55",
-    "structuredData": "{...json-ld data...}"
+    "structuredData": {
+      "productType": "Electronics",
+      "manufacturer": "Apple Inc.",
+      "model": "MLWK3AM/A"
+    }
   },
   "shipping": {
     "shippable": true,
     "freeShipping": true,
     "shippingRestrictions": [
-      "Alaska",
-      "Hawaii"
+      "PO Boxes"
     ],
-    "handlingTime": 2,
+    "handlingTime": 1,
     "packageType": "BOX",
     "hazardousMaterial": false,
-    "requiresSignature": true
+    "requiresSignature": false,
+    "dropShipping": {
+      "enabled": false
+    },
+    "shippingClass": "STANDARD"
   },
   "tags": [
-    "featured",
-    "new-arrival",
-    "4k"
+    "wireless",
+    "noise-cancelling",
+    "apple",
+    "bluetooth",
+    "earbuds"
   ],
   "status": "ACTIVE",
   "visibility": "PUBLIC",
-  "brandName": "TechVision",
-  "metadata": {
-    "warranty": "2 years",
-    "colorOptions": [
-      "Black",
-      "Silver"
-    ],
-    "externalIds": "",
-    "customFields": "",
-    "flags": []
-  },
-  "brandSlug": "techvision",
-  "categoryId": "cat-9876",
-  "categoryName": "Televisions",
-  "categoryPath": "Electronics/Televisions/Smart TVs",
-  "categorySlug": "televisions",
-  "sellerId": "seller-54321",
-  "sellerName": "ElectroWorld",
-  "sellerRating": 4.8,
-  "sellerVerified": true,
-  "averageRating": 4.6,
-  "totalReviews": 128,
   "reviewsEnabled": true,
-  "variantCode": "TV55-BLK",
-  "createdAt": "2024-01-15T10:30:00Z",
-  "updatedAt": "2024-03-20T14:15:22Z",
+  "variantOfId": "",
   "searchTerms": [
-    "smart tv",
-    "4k television",
-    "uhd display"
+    "apple airpods",
+    "noise cancelling earbuds",
+    "wireless headphones",
+    "bluetooth earbuds"
   ],
-  "facets": "screen_size:55, resolution:4k, smart:yes"
+  "facets": {
+    "color": "white",
+    "priceRange": "200-300",
+    "brand": "apple",
+    "features": [
+      "noise-cancelling",
+      "wireless"
+    ]
+  },
+  "variantCode": "variantCode"
 }
+
+<> 2025-06-23T145546.201.json

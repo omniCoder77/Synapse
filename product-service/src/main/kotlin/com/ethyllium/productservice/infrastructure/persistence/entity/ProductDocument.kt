@@ -96,16 +96,32 @@ data class ProductDocument(
 }
 
 data class ProductPricingDocument(
-    val basePrice: Long,
-    val salePrice: Long? = null,
-    val costPrice: Long? = null,
+    val basePrice: Double,
+    val salePrice: Double = basePrice,
+    val costPrice: Double? = null,
     val currency: String = "USD",
-    val taxClass: String? = null,
+    val taxClass: TaxClass = TaxClass.EXEMPT,
     val taxIncluded: Boolean = false,
     val priceValidFrom: Instant? = null,
     val priceValidTo: Instant? = null,
     val bulkPricing: List<BulkPricingDocument> = emptyList(),
 ) {
+    val discountPercentage: Double
+        get() {
+            if (salePrice < basePrice) {
+                return ((basePrice - salePrice) / basePrice) * 100
+            }
+            return 0.0
+        }
+
+    val discountAmount: Double
+        get() {
+            if (salePrice < basePrice) {
+                return basePrice - salePrice
+            }
+            return 0.0
+        }
+
     fun toResponse() = ProductPricingResponse(
         basePrice = basePrice,
         salePrice = salePrice,
@@ -223,8 +239,16 @@ data class ProductMediaDocument(
     val images: List<ProductImageDocument> = emptyList(),
     val videos: List<ProductVideoDocument> = emptyList(),
     val documents: List<ProductDocumentFile> = emptyList(),
-    val primaryImageUrl: String? = null
 ) {
+    val primaryImageUrl: String
+
+    init {
+        if (images.isEmpty()) {
+            throw IllegalArgumentException("At least one image is required for ProductMediaDocument.")
+        }
+        primaryImageUrl = images[0].url
+    }
+
     fun toResponse() = ProductMediaResponse(
         images = images.map { it.toResponse() },
         videos = videos.map { it.toResponse() },

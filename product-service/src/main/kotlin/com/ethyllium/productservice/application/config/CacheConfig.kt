@@ -1,4 +1,4 @@
-package com.ethyllium.productservice.config
+package com.ethyllium.productservice.application.config
 
 import org.ehcache.jsr107.EhcacheCachingProvider
 import org.springframework.cache.annotation.EnableCaching

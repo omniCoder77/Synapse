@@ -200,13 +200,6 @@ class GlobalExceptionHandler {
         return ResponseEntity.status(ex.statusCode).body(ApiResponse.error(ex.reason ?: "Request failed"))
     }
 
-    @ExceptionHandler(AccessDeniedException::class)
-    fun handleAccessDeniedException(ex: AccessDeniedException): ResponseEntity<ApiResponse<Any>> {
-        logger.error("Access denied: ${ex.message}", ex)
-
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.error("Access denied: ${ex.message}"))
-    }
-
     @ExceptionHandler(Exception::class)
     fun handleGenericException(ex: Exception): ResponseEntity<ApiResponse<Any>> {
         logger.error("Unexpected error", ex)

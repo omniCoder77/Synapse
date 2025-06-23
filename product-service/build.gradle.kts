@@ -1,6 +1,7 @@
 plugins {
     kotlin("jvm") version "2.1.20"
-    kotlin("plugin.spring") version "1.9.25"
+    kotlin("plugin.spring") version "2.1.20"
+    id("com.google.protobuf") version "0.9.5"
     id("org.springframework.boot") version "3.4.4"
     id("io.spring.dependency-management") version "1.1.7"
 }
@@ -19,6 +20,8 @@ repositories {
 }
 
 extra["springCloudVersion"] = "2024.0.1"
+val springGrpcVersion by extra("0.8.0")
+val kotlinStubVersion = "1.4.3"
 
 dependencies {
     // Spring Boot Starters
@@ -56,11 +59,21 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     implementation("com.bucket4j:bucket4j_jdk17-core:8.14.0")
-}
 
+    // GRPC
+    implementation("org.springframework.grpc:spring-grpc-spring-boot-starter")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("io.grpc:grpc-services")
+    implementation("io.grpc:grpc-kotlin-stub:${kotlinStubVersion}")
+
+    implementation(kotlin("reflect"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
+
+}
 dependencyManagement {
     imports {
         mavenBom("org.springframework.cloud:spring-cloud-dependencies:${property("springCloudVersion")}")
+        mavenBom("org.springframework.grpc:spring-grpc-dependencies:$springGrpcVersion")
     }
 }
 
@@ -74,10 +87,38 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
+
 tasks.bootBuildImage {
     builder = "paketobuildpacks/builder-jammy-base:latest"
 }
 
 tasks.getByName<Jar>("jar") {
     enabled = false
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:${dependencyManagement.importedProperties["protobuf-java.version"]}"
+    }
+    plugins {
+        create("grpc") {
+            artifact = "io.grpc:protoc-gen-grpc-java:${dependencyManagement.importedProperties["grpc.version"]}"
+        }
+        create("grpckt") {
+            artifact = "io.grpc:protoc-gen-grpc-kotlin:${kotlinStubVersion}:jdk8@jar"
+        }
+    }
+    generateProtoTasks {
+        all().forEach { task ->
+            task.plugins {
+                create("grpc") {
+                    option("jakarta_omit")
+                    option("@generated=omit")
+                }
+                create("grpckt") {
+                    outputSubDir = "kotlin"
+                }
+            }
+        }
+    }
 }
