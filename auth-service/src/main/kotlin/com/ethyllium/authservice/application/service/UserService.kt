@@ -1,14 +1,18 @@
 package com.ethyllium.authservice.application.service
 
-import com.ethyllium.authservice.infrastructure.persistence.jpa.JpaUserEntityRepository
+import com.ethyllium.authservice.domain.port.driven.UserRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import reactor.core.publisher.Mono
+import java.util.UUID
 
 @Service
-class UserService(private val jpaUserEntityRepository: JpaUserEntityRepository) {
+class UserService(
+    private val userRepository: UserRepository
+) {
 
     @Transactional
-    fun updateUserSecret(userId: String, secret: String) {
-        jpaUserEntityRepository.setUserSecret(userId, secret)
+    fun updateUserSecret(userId: UUID, secret: String): Mono<Long> {
+        return userRepository.setUserSecret(userId, secret)
     }
 }

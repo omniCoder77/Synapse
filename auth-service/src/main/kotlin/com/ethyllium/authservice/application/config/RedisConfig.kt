@@ -1,19 +1,25 @@
 package com.ethyllium.authservice.application.config
 
+import com.ethyllium.authservice.domain.model.UserRegisteredEvent
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory
 import org.springframework.data.redis.connection.RedisConnectionFactory
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory
-import org.springframework.data.redis.core.RedisTemplate
+import org.springframework.data.redis.core.ReactiveRedisOperations
+import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.data.redis.core.StringRedisTemplate
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer
+import org.springframework.data.redis.serializer.RedisSerializationContext
 import org.springframework.data.redis.serializer.StringRedisSerializer
-import org.springframework.integration.redis.util.RedisLockRegistry
 
 @Configuration
 class RedisConfig {
 
     @Bean
-    fun redisConnectionFactory(): RedisConnectionFactory {
+    fun redisConnectionFactory(): ReactiveRedisConnectionFactory {
         return LettuceConnectionFactory()
     }
 
@@ -26,18 +32,27 @@ class RedisConfig {
     }
 
     @Bean
-    fun redisTemplate(redisConnectionFactory: RedisConnectionFactory): RedisTemplate<String, Any> {
-        val template = RedisTemplate<String, Any>()
-        template.connectionFactory = redisConnectionFactory
-        template.keySerializer = StringRedisSerializer()
-        template.valueSerializer = StringRedisSerializer()
-        template.setEnableTransactionSupport(true)
-        return template
+    fun redisOperations(factory: ReactiveRedisConnectionFactory): ReactiveRedisOperations<String, Any> {
+        val serializer: Jackson2JsonRedisSerializer<Any> = Jackson2JsonRedisSerializer(Any::class.java)
+
+        val builder: RedisSerializationContext.RedisSerializationContextBuilder<String, Any> =
+            RedisSerializationContext.newSerializationContext(StringRedisSerializer())
+
+        val context: RedisSerializationContext<String?, Any> = builder.value(serializer).build()
+
+        return ReactiveRedisTemplate<String, Any>(factory, context)
     }
 
-    // Existing lock registry
     @Bean
-    fun redisLockRegistry(redisConnectionFactory: RedisConnectionFactory): RedisLockRegistry {
-        return RedisLockRegistry(redisConnectionFactory, "registration-locks", 30000)
+    fun userRegisteredEventTemplate(factory: ReactiveRedisConnectionFactory): ReactiveRedisTemplate<String, UserRegisteredEvent> {
+        val keySerializer = StringRedisSerializer.UTF_8
+
+        val objectMapper = ObjectMapper().registerModule(KotlinModule.Builder().build())
+        val valueSerializer = Jackson2JsonRedisSerializer(objectMapper, UserRegisteredEvent::class.java)
+
+        val builder = RedisSerializationContext.newSerializationContext<String, UserRegisteredEvent>(keySerializer)
+        val context = builder.value(valueSerializer).build()
+
+        return ReactiveRedisTemplate(factory, context)
     }
 }

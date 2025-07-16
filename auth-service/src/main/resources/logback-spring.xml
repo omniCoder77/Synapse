@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/base.xml"/>
+
+    <!-- The AsyncAppender is the key component -->
+    <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <!-- Don't discard messages if the queue is full, but this can slow down the publisher thread.
+             You can set it to true if you are okay with losing log messages under extreme load. -->
+        <discardingThreshold>0</discardingThreshold>
+        <!-- Queue size. Default is 256. -->
+        <queueSize>512</queueSize>
+        <!-- Reference the actual appender that does the writing -->
+        <appender-ref ref="CONSOLE"/>
+    </appender>
+
+    <root level="INFO">
+        <!-- Point the root logger to the ASYNC appender -->
+        <appender-ref ref="ASYNC"/>
+    </root>
+
+    <!-- You can keep specific loggers synchronous if needed for debugging, but be careful -->
+    <logger name="com.ethyllium.authservice" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC"/>
+    </logger>
+
+</configuration>

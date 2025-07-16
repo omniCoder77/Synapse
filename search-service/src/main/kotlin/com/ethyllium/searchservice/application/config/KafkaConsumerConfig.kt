@@ -1,4 +1,4 @@
-package com.ethyllium.searchservice.config
+package com.ethyllium.searchservice.application.config
 
 import com.ethyllium.searchservice.handler.OutboxEventHandler
 import com.ethyllium.searchservice.model.OutboxEvent
