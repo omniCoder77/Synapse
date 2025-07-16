@@ -153,6 +153,7 @@ graph TB
     style CACHE_SEARCH fill:#fce4ec,stroke:#c2185b,stroke-width:1px,color:#c2185b
 ```
 
+
 # ✨ Key Features & Service Breakdown
 # ✨ Key Features & Service Breakdown
 
@@ -213,3 +214,20 @@ Local Setup
     * **API Gateway:** `http://localhost:8080`
     * **Swagger UI:** `http://localhost:8080/swagger-ui.html`
     * Individual services can also be accessed on their respective ports if needed.
+# 🔮 Project Status & Future Roadmap
+
+This project is a functional and robust platform, but it also serves as a foundation for future enhancements.
+
+## Current Status
+
+* ✅ All core services are functional and integrated.
+* ✅ End-to-end flows for user registration, product creation, ordering, and payment are implemented.
+* ✅ Event-driven communication for key business processes is in place.
+
+## Future Enhancements
+
+* ✨ **Implement Config Server**: Centralize all configuration using Spring Cloud Config for better management.
+* ✨ **Expand Test Coverage**: Increase unit, integration, and end-to-end test coverage across all services.
+* ✨ **CI/CD Pipeline**: Set up a full continuous integration and deployment pipeline using GitHub Actions.
+* ✨ **Frontend Application**: Develop a React or Vue.js client to consume the backend APIs.
+* ✨ **Observability**: Integrate distributed tracing (e.g., OpenTelemetry) and centralized logging (ELK Stack) for better monitoring.
