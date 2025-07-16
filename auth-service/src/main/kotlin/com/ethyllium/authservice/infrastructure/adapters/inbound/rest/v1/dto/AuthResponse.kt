@@ -1,4 +1,4 @@
-package com.ethyllium.authservice.infrastructure.adapters.inbound.rest.dto
+package com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.dto
 
 data class AuthResponse(
     val accessToken: String,

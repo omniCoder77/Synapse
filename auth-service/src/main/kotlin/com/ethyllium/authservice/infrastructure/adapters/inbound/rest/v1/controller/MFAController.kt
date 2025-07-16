@@ -1,6 +1,6 @@
-package com.ethyllium.authservice.infrastructure.adapters.inbound.rest.controller
+package com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.controller
 
-import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.dto.ApiResponse
+import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.dto.ApiResponse
 import com.ethyllium.authservice.application.service.UserService
 import com.ethyllium.authservice.application.service.ValidationService
 import com.ethyllium.authservice.domain.port.driven.TokenService
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/v1/auth")
 class MFAController(
     private val userService: UserService,
     private val validationService: ValidationService,

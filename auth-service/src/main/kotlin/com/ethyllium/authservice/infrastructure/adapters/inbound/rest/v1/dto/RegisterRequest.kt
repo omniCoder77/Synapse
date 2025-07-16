@@ -1,4 +1,4 @@
-package com.ethyllium.authservice.infrastructure.adapters.inbound.rest.dto
+package com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.dto
 
 import com.ethyllium.authservice.domain.model.User
 import java.util.UUID

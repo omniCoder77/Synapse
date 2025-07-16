@@ -1,7 +1,7 @@
 package com.ethyllium.authservice.domain.port.driver
 
 import com.ethyllium.authservice.domain.model.RegisterResult
-import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.dto.RegisterRequest
+import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.dto.RegisterRequest
 import reactor.core.publisher.Mono
 
 interface RegisterUserUseCase {

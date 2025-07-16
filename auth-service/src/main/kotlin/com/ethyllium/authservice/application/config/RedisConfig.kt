@@ -3,6 +3,7 @@ package com.ethyllium.authservice.application.config
 import com.ethyllium.authservice.domain.model.UserRegisteredEvent
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory
@@ -11,9 +12,8 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.core.ReactiveRedisOperations
 import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.data.redis.core.StringRedisTemplate
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer
-import org.springframework.data.redis.serializer.RedisSerializationContext
-import org.springframework.data.redis.serializer.StringRedisSerializer
+import org.springframework.data.redis.serializer.*
+
 
 @Configuration
 class RedisConfig {
@@ -28,6 +28,19 @@ class RedisConfig {
         val template = StringRedisTemplate()
         template.connectionFactory = redisConnectionFactory
         template.setEnableTransactionSupport(true)
+        return template
+    }
+
+    @Bean
+    fun reactiveRedisTemplate(factory: ReactiveRedisConnectionFactory): ReactiveRedisTemplate<String, Long> {
+        val jdkSerializationRedisSerializer = JdkSerializationRedisSerializer()
+        val stringRedisSerializer = StringRedisSerializer.UTF_8
+        val longToStringSerializer = GenericToStringSerializer(Long::class.java)
+        val template = ReactiveRedisTemplate(
+            factory,
+            RedisSerializationContext.newSerializationContext<String, Long>(jdkSerializationRedisSerializer)
+                .key(stringRedisSerializer).value(longToStringSerializer).build()
+        )
         return template
     }
 

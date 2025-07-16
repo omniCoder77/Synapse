@@ -1,7 +1,7 @@
 package com.ethyllium.authservice.infrastructure.adapters.outbound.security
 
 import com.ethyllium.authservice.domain.port.driven.TokenService
-import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.controller.MFAController
+import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.controller.MFAController
 import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.ReactiveSecurityContextHolder

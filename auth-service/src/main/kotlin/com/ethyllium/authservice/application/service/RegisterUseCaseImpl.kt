@@ -8,7 +8,7 @@ import com.ethyllium.authservice.domain.port.driver.QrCodeGenerator
 import com.ethyllium.authservice.domain.port.driver.RegisterUserUseCase
 import com.ethyllium.authservice.domain.port.driver.UserEventPublisher
 import com.ethyllium.authservice.domain.util.CredentialValidator
-import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.dto.RegisterRequest
+import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.dto.RegisterRequest
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono

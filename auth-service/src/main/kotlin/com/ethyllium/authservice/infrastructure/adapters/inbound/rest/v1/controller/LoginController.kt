@@ -1,7 +1,6 @@
-package com.ethyllium.authservice.infrastructure.adapters.inbound.rest.controller
+package com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.controller
 
-import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.dto.LoginRequest
-import com.ethyllium.authservice.application.service.LoginUseCaseImpl
+import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.dto.LoginRequest
 import com.ethyllium.authservice.domain.model.LoginAttempt
 import com.ethyllium.authservice.domain.port.driven.TokenService
 import com.ethyllium.authservice.domain.port.driver.LoginUseCase
@@ -12,9 +11,8 @@ import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/v1/auth")
 class LoginController(
-    private val loginUseCaseImpl: LoginUseCaseImpl,
     private val tokenService: TokenService,
     private val loginUseCase: LoginUseCase
 ) {

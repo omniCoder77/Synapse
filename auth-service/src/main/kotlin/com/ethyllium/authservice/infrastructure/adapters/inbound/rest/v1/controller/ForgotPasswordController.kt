@@ -1,11 +1,16 @@
-package com.ethyllium.authservice.infrastructure.adapters.inbound.rest.controller
+package com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.controller
 
 import com.ethyllium.authservice.application.service.ValidationService
 import com.ethyllium.authservice.domain.port.driven.CacheRepository
 import com.ethyllium.authservice.domain.port.driven.EmailService
 import com.ethyllium.authservice.domain.port.driven.TokenService
 import com.ethyllium.authservice.domain.port.driven.UserRepository
-import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.dto.*
+import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.dto.ApiResponse
+import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.dto.NewPasswordRequest
+import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.dto.PasswordResetRequest
+import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.dto.PasswordResetResponse
+import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.dto.PasswordResetTokenResponse
+import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.dto.ValidateTokenRequest
 import jakarta.validation.Valid
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -18,7 +23,7 @@ import java.time.temporal.ChronoUnit
 import java.util.*
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/v1/auth")
 class PasswordResetController(
     private val userRepository: UserRepository,
     private val tokenService: TokenService,

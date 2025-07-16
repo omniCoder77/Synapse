@@ -1,4 +1,4 @@
-package com.ethyllium.authservice.infrastructure.adapters.inbound.rest.dto
+package com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.dto
 
 data class PasswordResetRequest(val email: String)
 data class ValidateTokenRequest(val email: String, val token: String)

@@ -9,6 +9,7 @@ build/
 .factorypath
 .project
 .settings
+.env
 .springBeans
 .sts4-cache
 bin/
@@ -84,4 +85,3 @@ replay_pid*
 .Trash-*
 .nfs*
 src/main/resources/jwtKeystore.jceks
-.env

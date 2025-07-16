@@ -1,10 +1,10 @@
-package com.ethyllium.authservice.infrastructure.adapters.inbound.rest.controller
+package com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.controller
 
 import com.ethyllium.authservice.domain.model.RegisterResult
 import com.ethyllium.authservice.domain.port.driver.RegisterUserUseCase
-import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.dto.ApiResponse
-import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.dto.AuthResponse
-import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.dto.RegisterRequest
+import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.dto.ApiResponse
+import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.dto.AuthResponse
+import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.dto.RegisterRequest
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/v1/auth")
 class RegisterController(
     private val registerUserUseCase: RegisterUserUseCase
 ) {

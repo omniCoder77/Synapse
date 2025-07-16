@@ -1,4 +1,4 @@
-package com.ethyllium.authservice.infrastructure.adapters.inbound.rest.controller
+package com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.controller
 
 import com.ethyllium.authservice.application.service.ValidationService
 import com.ethyllium.authservice.domain.port.driven.LoginAttemptRepository
@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono
 import java.util.*
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/v1/auth")
 class VerificationController(
     private val validationService: ValidationService,
     private val tokenService: TokenService,
