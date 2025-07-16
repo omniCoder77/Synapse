@@ -6,19 +6,18 @@ services:
     ports:
       - "8081:8081"
     environment:
-      - SPRING_PROFILES_ACTIVE=dev
-      - DB_URL=jdbc:postgresql://postgres:5432/authentication
-      - DB_USERNAME=postgres
-      - MAIL_HOST=mailhog
-      - DB_PASSWORD=postgres
-      - TWILIO_ACCOUNT_SID=AC6e0e7cbef200b2fd85c5e8429768041e
-      - REDIS_HOST=redis
-      - TWILIO_AUTH_TOKEN=6380407c11a0a2fb211353db89297090
-      - TWILIO_PATH_SERVICE_ID=VA02b136216de2b87c9c133d72381269e6
-      - JWT_KEYSTORE_LOCATION=classpath:keystore.jks
-      - JWT_KEYSTORE_PASSWORD=asfj3489urwejjfe4r
-      - SPRING_PROFILES_ACTIVE=dev
-      - JWT_KEY_PASSWORD=328942urijdfkj()87
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - DB_URL=${DB_URL}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - MAIL_HOST=${MAIL_HOST}
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - REDIS_HOST=${REDIS_HOST}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - TWILIO_PATH_SERVICE_ID=${TWILIO_PATH_SERVICE_ID}
+      - JWT_KEYSTORE_LOCATION=${JWT_KEYSTORE_LOCATION}
+      - JWT_KEYSTORE_PASSWORD=${JWT_KEYSTORE_PASSWORD}
+      - JWT_KEY_PASSWORD=${JWT_KEY_PASSWORD}
     depends_on:
       - postgres
       - redis
@@ -32,9 +31,9 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      - POSTGRES_DB=authentication
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
