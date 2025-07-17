@@ -83,3 +83,5 @@ replay_pid*
 .directory
 .Trash-*
 .nfs*
+src/main/resources/http/*
+src/main/resources/upload/*
