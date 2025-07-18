@@ -12,7 +12,7 @@ import reactor.core.publisher.Mono
 class KafkaEventPublisherPublisher(private val kafkaTemplate: KafkaTemplate<String, Event>) : EventPublisher {
     override fun publishBrandCreated(brand: Brand): Mono<Void> {
         val event = BrandCreatedEvent(
-            brand.id, brand.name, brand.website, brand.description, brand.logoUrl, brand.slug
+            brand.id!!, brand.name, brand.website, brand.description, brand.logoUrl, brand.slug
         )
         return Mono.just(kafkaTemplate.send(Topics.BRAND_CREATED, event)).then()
     }
@@ -135,7 +135,7 @@ class KafkaEventPublisherPublisher(private val kafkaTemplate: KafkaTemplate<Stri
     }
 
     override fun publishProductUpdated(product: Product): Mono<Void> {
-        val event = ProductUpdatedEvent(product)
+        val event = product.toCreatedKafkaEvent()
         return Mono.just(kafkaTemplate.send(Topics.PRODUCT_UPDATED, event)).then()
     }
 

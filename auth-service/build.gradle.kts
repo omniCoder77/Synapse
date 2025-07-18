@@ -25,16 +25,13 @@ dependencies {
     // Spring Boot Starters
     implementation("org.springframework.boot:spring-boot-starter-aop")
     implementation("org.springframework.boot:spring-boot-starter-webflux") {
-        // This is the crucial part: exclude the Tomcat starter
-
         exclude(group = "org.springframework.boot", module = "spring-boot-starter-tomcat")
     }
-    // Ensure Netty is the server (it's the default with webflux, but this makes it explicit)
-    implementation("org.springframework.boot:spring-boot-starter-reactor-netty")   // Often used with reactive programming
+    implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
+    compileOnly("jakarta.servlet:jakarta.servlet-api")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-mail")
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
-    compileOnly("jakarta.servlet:jakarta.servlet-api")
 
     //---
 

@@ -1,10 +1,11 @@
 package com.ethyllium.searchservice.domain.service
 
-import com.ethyllium.searchservice.application.dto.SuggestionItemDTO
 import com.ethyllium.searchservice.domain.model.Product
 import com.ethyllium.searchservice.infrastructure.elasticsearch.entity.SearchProduct
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 interface ProductSearchService {
     fun searchProducts(
@@ -17,22 +18,10 @@ interface ProductSearchService {
         tags: List<String>?,
         color: List<String>?,
         pageable: Pageable,
-    ): Page<SearchProduct>
+    ): Mono<Page<SearchProduct>>
 
-    fun autocompleteSuggestions(term: String, limit: Int): List<SuggestionItemDTO>
-    fun getSearchFacets(
-        query: String?,
-        filters: String?,
-        category: List<String>?,
-        brand: List<String>?,
-        minPrice: Long?,
-        maxPrice: Long?,
-        status: List<String>?,
-        tags: List<String>?,
-        color: List<String>?,
-        pageable: Pageable
-    ): Map<String, Any>
-    fun getProductById(id: String): Product?
-    fun findSimilarProducts(productId: String, limit: Int): List<Product>
-    fun getPopularSearches(limit: Int, timespan: String): List<Pair<String, Int>>
+
+    fun getProductById(id: String): Mono<Product>
+    fun findSimilarProducts(productId: String, limit: Int): Flux<Product>
+    fun getPopularSearches(limit: Int, timespan: String): Flux<Pair<String, Int>>
 }

@@ -3,7 +3,7 @@ package com.ethyllium.productservice.infrastructure.adapter.outbound.persistence
 import com.ethyllium.productservice.domain.model.*
 import com.ethyllium.productservice.infrastructure.adapter.inbound.rest.dto.response.ProductResponse
 import com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.response.*
-import com.ethyllium.productservice.infrastructure.adapter.outbound.kafka.event.ProductCreated
+import com.ethyllium.productservice.infrastructure.adapter.outbound.kafka.event.ProductEvent
 import org.bson.types.ObjectId
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.index.Indexed
@@ -590,7 +590,7 @@ fun ProductImage.toDocument(): ProductImageDocument = ProductImageDocument(
     largeUrl = this.largeUrl
 )
 
-fun ProductImage.toKafkaProductImage() = ProductCreated.ProductImage(
+fun ProductImage.toKafkaProductImage() = ProductEvent.ProductImage(
     url = this.url,
     alt = this.alt,
 )

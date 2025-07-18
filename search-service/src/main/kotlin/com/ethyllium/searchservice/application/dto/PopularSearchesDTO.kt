@@ -13,3 +13,8 @@ data class PopularSearchesDTO(
         }
     }
 }
+
+data class PopularSearchItemDTO(
+    val query: String,
+    val count: Int
+)

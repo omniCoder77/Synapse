@@ -1,4 +1,4 @@
-package com.ethyllium.productservice.infrastructure.adapter.outbound.kafka.event
+package com.ethyllium.searchservice.infrastructure.kafka.event
 
 data class BrandCreatedEvent(
     val id: String,
@@ -7,4 +7,4 @@ data class BrandCreatedEvent(
     val description: String?,
     val logoUrl: String?,
     val slug: String
-): Event
+)

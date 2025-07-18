@@ -27,14 +27,13 @@ data class Product(
 ) {
     data class SearchBrand(
         val name: String,
-        val logoUrl: String
+        val logoUrl: String?,
+        val id: String
     )
 
     data class SearchCategory(
         val id: String,
         val name: String,
-        val slug: String,
-        val parentId: String? = null,
         val path: String,
         val level: Int = 0
     )

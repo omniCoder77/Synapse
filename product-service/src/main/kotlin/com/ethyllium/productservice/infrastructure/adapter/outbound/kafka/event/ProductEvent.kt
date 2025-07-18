@@ -10,7 +10,7 @@ import com.ethyllium.productservice.domain.model.WeightUnit
 import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.entity.toKafkaProductImage
 import java.time.LocalDateTime
 
-data class ProductCreated(
+data class ProductEvent(
     val id: String?,
     val name: String,
     val description: String,
@@ -25,7 +25,7 @@ data class ProductCreated(
     val rating: Double,
 
     val brandId: String,
-    val categoryPath: String,
+    val categoryId: String,
     val pricingBasePrice: Long,
     val pricingSalePrice: Long? = null,
     val pricingCurrency: String = "USD",
@@ -34,6 +34,7 @@ data class ProductCreated(
 
     val inventoryStockQuantity: Int = 0,
     val inventoryAvailableQuantity: Int = 0,
+    val inventoryLowStockThreshold: Int = 0,
     val inventoryStockStatus: StockStatus = StockStatus.IN_STOCK,
 
     val specificationsWeightValue: Long? = null,
@@ -74,8 +75,8 @@ data class ProductCreated(
         val alt: String? = null
     )
 }
-fun Product.toCreatedKafkaEvent(): ProductCreated {
-    return ProductCreated(
+fun Product.toCreatedKafkaEvent(): ProductEvent {
+    return ProductEvent(
         id = this.id,
         name = this.name,
         description = this.description,
@@ -89,7 +90,7 @@ fun Product.toCreatedKafkaEvent(): ProductCreated {
         visibility = this.visibility,
         rating = this.reviews.averageRating.toDouble(),
         brandId = this.brand.id ?: "",
-        categoryPath = this.category.path,
+        categoryId = this.category.id!!,
         pricingBasePrice = this.pricing.basePrice,
         pricingSalePrice = this.pricing.salePrice,
         pricingCurrency = this.pricing.currency,
