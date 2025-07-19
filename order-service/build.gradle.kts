@@ -28,6 +28,7 @@ dependencies {
     implementation("org.springframework.cloud:spring-cloud-starter-loadbalancer")
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("org.springframework.cloud:spring-cloud-starter-config")
     implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-data-jdbc")

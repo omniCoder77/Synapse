@@ -1,6 +1,8 @@
 package com.ethyllium.authservice.infrastructure.adapters.outbound.jwt
 
 import jakarta.annotation.PostConstruct
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.io.File
@@ -19,7 +21,6 @@ class JwtKeyManager(
 ) {
 
     private var keyStore: KeyStore = KeyStore.getInstance("JCEKS")
-    private var cachedKey: SecretKey? = null
 
     @PostConstruct
     fun init() {
@@ -48,15 +49,17 @@ class JwtKeyManager(
         return keyGen.generateKey()
     }
 
-    fun getKey(): SecretKey {
-        if (cachedKey != null) return cachedKey!!
-        else {
-            val keyEntry = keyStore.getEntry(keyAlias, KeyStore.PasswordProtection(keyPasswordStr.toCharArray()))
-            if (keyEntry is KeyStore.SecretKeyEntry) {
-                cachedKey = keyEntry.secretKey
-                return cachedKey!!
-            }
-        }
-        throw IllegalStateException("Key not found or wrong type for alias: $keyAlias")
+    @Volatile
+    private var cachedKey: SecretKey? = null
+    private val keyLoadLock = Mutex()
+
+    suspend fun getKey(): SecretKey = cachedKey ?: keyLoadLock.withLock {
+        cachedKey ?: loadKey().also { cachedKey = it }
+    }
+
+    private fun loadKey(): SecretKey {
+        val keyEntry = keyStore.getEntry(keyAlias, KeyStore.PasswordProtection(keyPasswordStr.toCharArray()))
+        return (keyEntry as? KeyStore.SecretKeyEntry)?.secretKey
+            ?: throw IllegalStateException("Key not found for alias: $keyAlias")
     }
 }

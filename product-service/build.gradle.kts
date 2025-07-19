@@ -31,6 +31,7 @@ dependencies {
     }
     implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
+    implementation("org.springframework.cloud:spring-cloud-starter-config")
     implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-actuator") // Placed with other starters

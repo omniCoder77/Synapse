@@ -7,12 +7,13 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
-import reactor.core.scheduler.Schedulers
+import reactor.core.scheduler.Scheduler
 
 @Service
 class UserCreationService(
     private val userRepository: UserRepository,
-    private val passwordEncoder: PasswordEncoder
+    private val passwordEncoder: PasswordEncoder,
+    private val cpuScheduler: Scheduler
 ) {
     /**
      * This method contains the ONLY part of the registration that needs to be in a single database transaction.
@@ -20,12 +21,6 @@ class UserCreationService(
      */
     @Transactional
     fun createAndPersistUser(user: User, refreshToken: String, mfaTotp: String?): Mono<UserEntity> {
-        // Password encoding is CPU-intensive, move it to a background thread pool.
-        return Mono.fromCallable { passwordEncoder.encode(user.password) }
-            .subscribeOn(Schedulers.parallel())
-            .flatMap { encodedPassword ->
-                user.password = encodedPassword // Update the model with the hashed password
-                userRepository.addUser(user, refreshToken, mfaTotp)
-            }
+        return userRepository.addUser(user, refreshToken, mfaTotp)
     }
 }

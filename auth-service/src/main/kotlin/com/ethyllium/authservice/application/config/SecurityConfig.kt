@@ -24,7 +24,7 @@ class SecurityConfig(
     ): SecurityWebFilterChain {
         return http.httpBasic { it.disable() }.formLogin { it.disable() }.csrf { it.disable() }.cors { it.disable() }
             .authorizeExchange { exchanges ->
-                exchanges.pathMatchers("/auth/**").permitAll()
+                exchanges.pathMatchers("/api/v1/auth/**", "/actuator/**").permitAll()
                 exchanges.anyExchange().authenticated()
             }
             .addFilterAt(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)

@@ -1,4 +1,4 @@
-package com.ethyllium.authservice.application
+package com.ethyllium.authservice
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication

@@ -7,6 +7,7 @@ import java.util.UUID
 
 interface LoginAttemptRepository {
     fun save(loginAttempt: LoginAttemptEntity): Mono<LoginAttemptEntity>
+    fun save(loginAttempt: List<LoginAttemptEntity>): Mono<Void>
     fun getFingerprints(username: UUID): Mono<MutableList<String>>
     fun addFingerprint(username: UUID, deviceFingerprint: String): Mono<Boolean>
     fun resetAttempt(username: UUID): Mono<Boolean>

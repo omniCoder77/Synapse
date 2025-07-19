@@ -8,7 +8,7 @@ import org.springframework.data.relational.core.query.Query
 import org.springframework.data.relational.core.query.Update
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
-import java.util.UUID
+import java.util.*
 
 @Component
 class JpaLoginAttemptRepositoryAdapter(
@@ -16,6 +16,29 @@ class JpaLoginAttemptRepositoryAdapter(
 ) : LoginAttemptRepository {
     override fun save(loginAttempt: LoginAttemptEntity): Mono<LoginAttemptEntity> {
         return r2dbcEntityTemplate.insert(loginAttempt)
+    }
+
+    override fun save(loginAttempt: List<LoginAttemptEntity>): Mono<Void> {
+        if (loginAttempt.isEmpty()) return Mono.empty()
+
+        val sql =
+            StringBuilder("INSERT INTO login_attempts (username, last_login_attempt, attempt, device_fingerprint) VALUES ")
+        val bindings = mutableListOf<Any>()
+
+        loginAttempt.forEachIndexed { index, entity ->
+            sql.append("($${index * 4 + 1}, $${index * 4 + 2}, $${index * 4 + 3}, $${index * 4 + 4}),")
+            bindings.add(entity.username)
+            bindings.add(entity.lastLoginAttempt)
+            bindings.add(entity.attempt)
+            bindings.add(entity.deviceFingerprint.toTypedArray())
+        }
+        sql.setLength(sql.length - 1)
+        var spec = r2dbcEntityTemplate.databaseClient.sql(sql.toString())
+        bindings.forEachIndexed { i, value ->
+            spec = spec.bind(i, value)
+        }
+
+        return spec.then()
     }
 
     override fun getFingerprints(username: UUID): Mono<MutableList<String>> {
@@ -29,11 +52,11 @@ class JpaLoginAttemptRepositoryAdapter(
 
     override fun addFingerprint(username: UUID, deviceFingerprint: String): Mono<Boolean> {
         val sql = """
-        INSERT INTO login_attempt (username, device_fingerprint) 
+        INSERT INTO login_attempts (username, device_fingerprint) 
         VALUES ($1, ARRAY[$2])
         ON CONFLICT (username) 
-        DO UPDATE SET device_fingerprint = array_append(login_attempt.device_fingerprint, $2)
-        WHERE NOT ($2 = ANY(login_attempt.device_fingerprint))
+        DO UPDATE SET device_fingerprint = array_append(login_attempts.device_fingerprint, $2)
+        WHERE NOT ($2 = ANY(login_attempts.device_fingerprint))
     """
 
         return r2dbcEntityTemplate.databaseClient.sql(sql).bind(0, username).bind(1, deviceFingerprint).fetch()

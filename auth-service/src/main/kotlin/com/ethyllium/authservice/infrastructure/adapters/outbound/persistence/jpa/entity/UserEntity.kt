@@ -1,5 +1,6 @@
 package com.ethyllium.authservice.infrastructure.adapters.outbound.persistence.jpa.entity
 
+import com.ethyllium.authservice.domain.model.Role
 import com.ethyllium.authservice.domain.model.User
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
@@ -18,7 +19,7 @@ data class UserEntity(
     @Id val username: UUID = UUID.randomUUID(),
     @Column("password") val _password: String = "",
     @Column("email") val email: String = "",
-    @Column("roles") val roles: String = "",
+    @Column("roles") val roles: String = "", // Roles are stored as a comma-separated string
     @Column("is_account_locked") val isAccountLocked: Boolean = false,
     @Column("is_account_enabled") val isAccountEnabled: Boolean = false,
     val enabled: Boolean = false,
@@ -37,7 +38,7 @@ data class UserEntity(
         username = username,
         password = _password,
         email = email,
-        role = roles, // Roles is a single string now (comma-separated)
+        role = roles.split(",").map { Role.valueOf(it) }, // Roles are stored as a comma-separated string
         isAccountLocked = isAccountLocked,
         isEnabled = enabled,
         phoneNumber = phoneNumber,
@@ -60,7 +61,7 @@ fun User.toUserEntity(refreshToken: String, mfaTotp: String?) = UserEntity(
     username = this.username,
     _password = this.password,
     email = this.email,
-    roles = this.role, // Should be a comma-separated string if you support multiple roles later
+    roles = this.role.joinToString(), // Should be a comma-separated string if you support multiple roles later
     isAccountLocked = this.isAccountLocked,
     enabled = this.isEnabled,
     mfa = this.isMfaEnabled,

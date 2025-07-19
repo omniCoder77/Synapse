@@ -28,10 +28,10 @@ class AuthFilter(
             }
     }
 
-    private fun authenticate(token: String): Mono<AuthResponse> {
-        return webClientBuilder.build().post().uri("lb://auth-service/auth/authenticate")
-            .header(HttpHeaders.AUTHORIZATION, token).retrieve().bodyToMono(AuthResponse::class.java)
+    private fun authenticate(token: String): Mono<AuthenticateResponse> {
+        return webClientBuilder.build().post().uri("lb://auth-service/api/v1/auth/authenticate")
+            .header(HttpHeaders.AUTHORIZATION, token).retrieve().bodyToMono(AuthenticateResponse::class.java)
     }
 }
 
-data class AuthResponse(val userId: String)
+data class AuthenticateResponse(val userId: String)

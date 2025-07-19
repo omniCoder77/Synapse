@@ -11,7 +11,7 @@ import org.springframework.data.relational.core.query.Update
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 import java.time.Instant
-import java.util.UUID
+import java.util.*
 
 @Component
 class UserRepositoryAdapter(
@@ -22,10 +22,10 @@ class UserRepositoryAdapter(
             .singleOrEmpty()
     }
 
-    override fun findUserByUsername(userName: UUID): Mono<UserEntity> {
+    override fun findUserByUsername(userName: UUID): Mono<User> {
         return r2dbcEntityTemplate.select(
             Query.query(Criteria.where("username").`is`(userName)), UserEntity::class.java
-        ).singleOrEmpty().switchIfEmpty(Mono.error(IllegalArgumentException("User with username $userName not found")))
+        ).singleOrEmpty().map { it.toUser() }
     }
 
     override fun addUser(user: User, refreshToken: String, mfaTotp: String?): Mono<UserEntity> {
@@ -39,6 +39,30 @@ class UserRepositoryAdapter(
             Update.update("password", encodedPassword),
             UserEntity::class.java
         )
+    }
+
+    override fun updatePassword(userIdAndPassword: List<Pair<UUID, String>>): Mono<Void> {
+        if (userIdAndPassword.isEmpty()) return Mono.empty()
+
+        val sql = StringBuilder("UPDATE users SET password = CASE username ")
+        val bindings = mutableListOf<Any>()
+        val usernameList = mutableListOf<String>()
+
+        userIdAndPassword.forEachIndexed { index, user ->
+            sql.append("WHEN $${index * 2 + 1} THEN $${index * 2 + 2} ")
+            bindings.add(user.first)
+            bindings.add(user.second)
+            usernameList.add("'${user.first}'")
+        }
+
+        sql.append("END WHERE username IN (${usernameList.joinToString(", ")})")
+
+        var spec = r2dbcEntityTemplate.databaseClient.sql(sql.toString())
+        bindings.forEachIndexed { i, value ->
+            spec = spec.bind(i, value)
+        }
+
+        return spec.then()
     }
 
     override fun setUserSecret(username: UUID, secret: String): Mono<Long> {
