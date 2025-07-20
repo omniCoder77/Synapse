@@ -1,7 +1,7 @@
 package com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.request
 
 import com.ethyllium.productservice.infrastructure.adapter.inbound.rest.dto.request.WarehouseStockRequest
-import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.entity.ProductInventoryDocument
+import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.postgres.entity.ProductInventoryDocument
 import jakarta.validation.constraints.Min
 import java.time.Instant
 

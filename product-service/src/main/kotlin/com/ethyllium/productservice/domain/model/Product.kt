@@ -191,7 +191,7 @@ data class Brand(
 )
 
 data class Category(
-    val id: String?,
+    val id: String? = null,
     val name: String,
     val description: String? = null,
     val parentId: String? = null,

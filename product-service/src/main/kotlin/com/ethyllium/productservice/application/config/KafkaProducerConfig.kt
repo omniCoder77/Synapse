@@ -14,11 +14,11 @@ import org.springframework.kafka.support.serializer.JsonSerializer
 class KafkaProducerConfig {
 
     @Bean
-    fun producerFactory(): ProducerFactory<String, Event> {
+    fun producerFactory(): ProducerFactory<String, String> {
         val configProps: MutableMap<String, Any> = HashMap()
         configProps[ProducerConfig.BOOTSTRAP_SERVERS_CONFIG] = "localhost:9092"
         configProps[ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java
-        configProps[ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG] = JsonSerializer::class.java
+        configProps[ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java
         configProps[ProducerConfig.ACKS_CONFIG] = "all"
         configProps[ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG] = true
         configProps[ProducerConfig.RETRIES_CONFIG] = 3
@@ -26,7 +26,7 @@ class KafkaProducerConfig {
     }
 
     @Bean
-    fun kafkaTemplate(): KafkaTemplate<String, Event> {
+    fun kafkaTemplate(): KafkaTemplate<String, String> {
         return KafkaTemplate(producerFactory())
     }
 }

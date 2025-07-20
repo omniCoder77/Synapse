@@ -1,6 +1,6 @@
 package com.ethyllium.productservice.infrastructure.adapter.inbound.rest.dto.request
 
-import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.entity.WarehouseStockDocument
+import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.postgres.entity.WarehouseStockDocument
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 

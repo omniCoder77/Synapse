@@ -5,12 +5,7 @@ import com.ethyllium.authservice.domain.port.driven.CacheRepository
 import com.ethyllium.authservice.domain.port.driven.EmailService
 import com.ethyllium.authservice.domain.port.driven.TokenService
 import com.ethyllium.authservice.domain.port.driven.UserRepository
-import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.dto.ApiResponse
-import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.dto.NewPasswordRequest
-import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.dto.PasswordResetRequest
-import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.dto.PasswordResetResponse
-import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.dto.PasswordResetTokenResponse
-import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.dto.ValidateTokenRequest
+import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.dto.*
 import jakarta.validation.Valid
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -97,7 +92,7 @@ class PasswordResetController(
                     ResponseEntity.ok(
                         ApiResponse.Success(
                             PasswordResetResponse(
-                                mfaRequired = user.totp != null, sessionToken = sessionToken
+                                mfaRequired = user.isMfaEnabled, sessionToken = sessionToken
                             )
                         ) as ApiResponse
                     )
@@ -210,9 +205,9 @@ class PasswordResetController(
         }
 
         return userRepository.findUserByUsername(UUID.fromString(userId)).flatMap { user ->
-            val updatedUser = user.copy(_password = passwordEncoder.encode(request.newPassword))
-
-            userRepository.addUser(updatedUser.toUser(), updatedUser.refreshToken, updatedUser.totp).flatMap {
+            val updatedUser = user.apply { password = passwordEncoder.encode(request.newPassword) }
+            val refreshToken = tokenService.generateRefreshToken(updatedUser.username.toString())
+            userRepository.addUser(updatedUser, refreshToken, updatedUser.totp).flatMap {
                 Mono.zip(
                     cacheRepository.remove(RESET_SESSION_PREFIX + sessionToken),
                     cacheRepository.remove(RESET_TOKEN_PREFIX + user.email)

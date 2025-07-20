@@ -1,6 +1,6 @@
 package com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.request
 
-import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.entity.OpenGraphDataDocument
+import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.postgres.entity.OpenGraphDataDocument
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
 

@@ -42,7 +42,8 @@ data class UserEntity(
         isAccountLocked = isAccountLocked,
         isEnabled = enabled,
         phoneNumber = phoneNumber,
-        isMfaEnabled = mfa
+        isMfaEnabled = mfa,
+        totp = totp
     )
 
     override fun getAuthorities(): MutableCollection<out GrantedAuthority> =

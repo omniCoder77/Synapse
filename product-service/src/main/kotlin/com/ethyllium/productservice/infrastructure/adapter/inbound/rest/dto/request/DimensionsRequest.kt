@@ -1,7 +1,7 @@
 package com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.request
 
 import com.ethyllium.productservice.domain.model.DimensionUnit
-import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.entity.DimensionsDocument
+import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.postgres.entity.DimensionsDocument
 import jakarta.validation.constraints.DecimalMin
 import jakarta.validation.constraints.NotNull
 

@@ -3,61 +3,63 @@ package com.ethyllium.productservice.application.service
 import com.ethyllium.productservice.domain.model.Brand
 import com.ethyllium.productservice.domain.port.driven.BrandRepository
 import com.ethyllium.productservice.domain.port.driven.EventPublisher
+import com.ethyllium.productservice.domain.port.driven.StorageService
 import com.ethyllium.productservice.domain.port.driver.BrandService
-import org.springframework.beans.factory.annotation.Value
+import org.slf4j.LoggerFactory
+import org.springframework.http.codec.multipart.FilePart
 import org.springframework.stereotype.Component
-import org.springframework.web.multipart.MultipartFile
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
-import java.nio.file.Files
-import java.nio.file.Path
-import java.util.*
-import kotlin.io.path.Path
 
 @Component
 class BrandServiceImpl(
     private val brandRepository: BrandRepository,
     private val eventPublisher: EventPublisher,
-    @Value("\${file.brand-logo}") private val uploadDirPath: String
+    private val storageService: StorageService
 ) : BrandService {
-    var uploadDir: Path = Path("")
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
-    init {
-        uploadDir = Path.of(uploadDirPath)
-        if (!Files.exists(uploadDir)) {
-            Files.createDirectories(uploadDir)
+    companion object {
+        const val BRAND_LOGOS_STORAGE_PATH = "brand-logos"
+        const val BRAND_LOGOS_URL_PATH = "brand-logos"
+    }
+
+    override fun create(brand: Brand, file: FilePart?): Mono<Brand> {
+        return if (file != null && file.filename().isNotEmpty()) {
+            storageService.store(file, BRAND_LOGOS_STORAGE_PATH).map { filename ->
+                brand.apply { logoUrl = storageService.getFileUrl(filename, BRAND_LOGOS_URL_PATH) }
+            }.flatMap { updatedBrand ->
+                brandRepository.insert(updatedBrand)
+            }.doOnSuccess { savedBrand ->
+                Mono.just {
+                    eventPublisher.publishBrandCreated(brand)
+                }.subscribeOn(Schedulers.boundedElastic()).subscribe()
+            }
+        } else {
+            brandRepository.insert(brand).doOnSuccess { savedBrand ->
+                Mono.just {
+                    eventPublisher.publishBrandCreated(brand)
+                }.subscribeOn(Schedulers.boundedElastic()).subscribe()
+
+            }
         }
     }
 
-    override fun create(brand: Brand, file: MultipartFile): Mono<Brand> {
-        val fileExtension = file.originalFilename?.substringAfterLast('.', "")
-        val filename = "${UUID.randomUUID()}.${fileExtension}"
-        val filePath = uploadDir.resolve(filename)
-
-        val fileUploadMono = Mono.just(file.transferTo(filePath.toFile()))
-        val fileUrl = "/brand-logos/$filename"
-        return brandRepository.insert(brand.apply { this.logoUrl = fileUrl }).doOnSuccess { br ->
-            eventPublisher.publishBrandCreated(brand).subscribeOn(
-                Schedulers.boundedElastic()
-            ).subscribe()
-            fileUploadMono.subscribeOn(Schedulers.boundedElastic()).subscribe()
-        }
-    }
-
-    override fun uploadBrandLogo(brandId: String, file: MultipartFile): Mono<Boolean> {
-        val fileExtension = file.originalFilename?.substringAfterLast('.', "")
-        val filename = "${UUID.randomUUID()}.${fileExtension}"
-        val filePath = uploadDir.resolve(filename)
-
-        val fileUploadMono = Mono.just(file.transferTo(filePath.toFile()))
-
-        val fileUrl = "/brand-logos/$filename"
-
-        return brandRepository.uploadLogo(brandId, fileUrl).doOnSuccess {
-            fileUploadMono.subscribeOn(Schedulers.boundedElastic()).subscribe()
-            eventPublisher.publishBrandUpdated(brandId = brandId, fileUrl = fileUrl).subscribeOn(
-                Schedulers.boundedElastic()
-            ).subscribe()
+    override fun uploadBrandLogo(brandId: String, file: FilePart): Mono<Boolean> {
+        return storageService.store(file, BRAND_LOGOS_STORAGE_PATH).flatMap { filename ->
+            val fileUrl = storageService.getFileUrl(filename, BRAND_LOGOS_URL_PATH)
+            brandRepository.uploadLogo(brandId, fileUrl).doOnSuccess { success ->
+                if (success) {
+                    Mono.just {
+                        eventPublisher.publishBrandUpdated(brandId = brandId, fileUrl = fileUrl)
+                    }.subscribeOn(Schedulers.boundedElastic())
+                        .subscribe({ }, { error -> logger.error("Failed to publish brand updated event", error) })
+                } else {
+                    storageService.delete(filename, BRAND_LOGOS_STORAGE_PATH).subscribe({ deleted ->
+                        if (deleted) logger.info("Cleaned up file after DB failure: $filename")
+                    }, { error -> logger.error("Failed to cleanup file: $filename", error) })
+                }
+            }
         }
     }
 
@@ -68,8 +70,10 @@ class BrandServiceImpl(
             brandId = brandId, name = name, description = description, website = website, slug = slug
         ).map { updatedBrand ->
             if (updatedBrand) {
-                eventPublisher.publishBrandUpdated(
-                    brandId = brandId, description = description, website = website, slug = slug
+                Mono.just(
+                    eventPublisher.publishBrandUpdated(
+                        brandId = brandId, description = description, website = website, slug = slug
+                    )
                 ).subscribeOn(Schedulers.boundedElastic()).subscribe()
                 updatedBrand
             } else updatedBrand
@@ -79,7 +83,8 @@ class BrandServiceImpl(
     override fun delete(brandId: String): Mono<Boolean> {
         return brandRepository.delete(brandId).doOnSuccess { deleted ->
             if (deleted) {
-                eventPublisher.publishBrandDeleted(brandId).subscribeOn(Schedulers.boundedElastic()).subscribe()
+                Mono.just(eventPublisher.publishBrandDeleted(brandId)).subscribeOn(Schedulers.boundedElastic())
+                    .subscribe()
             } else deleted
         }.subscribeOn(Schedulers.boundedElastic())
     }

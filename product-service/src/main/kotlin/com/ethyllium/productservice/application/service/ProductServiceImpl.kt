@@ -9,9 +9,9 @@ import com.ethyllium.productservice.domain.model.ProductVisibility
 import com.ethyllium.productservice.domain.port.driver.ProductService
 import com.ethyllium.productservice.infrastructure.adapter.inbound.rest.dto.response.ProductResponse
 import com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.request.UpdateProductRequest
-import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.entity.ProductDocument
-import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.entity.toDocument
-import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.entity.toDomain
+import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.postgres.entity.ProductDocument
+import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.postgres.entity.toDocument
+import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.postgres.entity.toDomain
 import com.mongodb.MongoWriteException
 import org.bson.types.ObjectId
 import org.slf4j.LoggerFactory

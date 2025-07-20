@@ -1,6 +1,5 @@
 package com.ethyllium.searchservice.infrastructure.web.rest
 
-import com.ethyllium.searchservice.application.dto.FacetsDTO
 import com.ethyllium.searchservice.application.dto.PopularSearchesDTO
 import com.ethyllium.searchservice.application.dto.ProductDetailDTO
 import com.ethyllium.searchservice.application.dto.SearchResultDTO

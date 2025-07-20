@@ -1,7 +1,7 @@
 package com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.request
 
 import com.ethyllium.productservice.domain.model.TaxClass
-import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.entity.ProductPricingDocument
+import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.postgres.entity.ProductPricingDocument
 import jakarta.validation.constraints.DecimalMin
 import jakarta.validation.constraints.Digits
 import jakarta.validation.constraints.NotNull

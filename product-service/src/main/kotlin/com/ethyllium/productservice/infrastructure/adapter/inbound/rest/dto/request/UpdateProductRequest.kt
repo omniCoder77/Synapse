@@ -2,7 +2,7 @@ package com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dt
 
 import com.ethyllium.productservice.domain.model.ProductStatus
 import com.ethyllium.productservice.domain.model.ProductVisibility
-import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.entity.ProductDocument
+import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.postgres.entity.ProductDocument
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size

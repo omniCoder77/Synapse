@@ -10,8 +10,7 @@ data class CreateCategoryRequest(
     val level: Int = 0,
     val path: String
 ) {
-    fun toCategory(id: String? = null, imageUrl: String? = null) = Category(
-        id = id ?: name,
+    fun toCategory(imageUrl: String? = null) = Category(
         name = name,
         description = description,
         parentId = parentId,

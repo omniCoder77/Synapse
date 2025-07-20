@@ -15,7 +15,7 @@ class WarehouseStockServiceImpl(
 ) : WarehouseStockService {
     override fun create(warehouseStock: WarehouseStock): Mono<WarehouseStock> {
         return warehouseStockRepository.insert(warehouseStock).doOnSuccess { stock ->
-            eventPublisher.publishWarehouseStockCreated(stock).subscribeOn(Schedulers.boundedElastic()).subscribe()
+            Mono.just(eventPublisher.publishWarehouseStockCreated(stock)).subscribeOn(Schedulers.boundedElastic()).subscribe()
         }
     }
 
@@ -25,7 +25,7 @@ class WarehouseStockServiceImpl(
         return warehouseStockRepository.update(warehouseId, quantity, reservedQuantity, location)
             .doOnSuccess { updated ->
                 if (updated) {
-                    eventPublisher.publishWarehouseStockUpdated(warehouseId, quantity, reservedQuantity, location)
+                    Mono.just(eventPublisher.publishWarehouseStockUpdated(warehouseId, quantity, reservedQuantity, location))
                         .subscribeOn(Schedulers.boundedElastic()).subscribe()
                 }
             }
@@ -34,7 +34,7 @@ class WarehouseStockServiceImpl(
     override fun delete(warehouseId: String): Mono<Boolean> {
         return warehouseStockRepository.delete(warehouseId).doOnSuccess { deleted ->
             if (deleted) {
-                eventPublisher.publishWarehouseStockDeleted(warehouseId).subscribeOn(Schedulers.boundedElastic())
+                Mono.just(eventPublisher.publishWarehouseStockDeleted(warehouseId)).subscribeOn(Schedulers.boundedElastic())
                     .subscribe()
             }
         }

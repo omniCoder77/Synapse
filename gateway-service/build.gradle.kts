@@ -35,13 +35,10 @@ dependencies {
     testImplementation("io.projectreactor:reactor-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-	implementation("org.springframework.cloud:spring-cloud-starter-kubernetes-client")
-	implementation("org.springframework.cloud:spring-cloud-starter-kubernetes-client-config")
-	implementation("org.springframework.cloud:spring-cloud-starter-kubernetes-client-loadbalancer")
-
     implementation("org.springdoc:springdoc-openapi-starter-common:2.8.8")
     implementation("io.springfox:springfox-swagger-ui:3.0.0")
     implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.8")
+    implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
 }
 
 dependencyManagement {

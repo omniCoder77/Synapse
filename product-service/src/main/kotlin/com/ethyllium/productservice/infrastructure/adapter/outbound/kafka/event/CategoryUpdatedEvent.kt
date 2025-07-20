@@ -5,5 +5,6 @@ data class CategoryUpdatedEvent(
     val name: String?,
     val description: String?,
     val slug: String?,
-    val parentId: String?
+    val parentId: String?,
+    val imageUrl: String?
 ) : Event

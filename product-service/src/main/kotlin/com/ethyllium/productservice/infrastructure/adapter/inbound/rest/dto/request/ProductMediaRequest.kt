@@ -1,6 +1,6 @@
 package com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.request
 
-import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.entity.ProductMediaDocument
+import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.postgres.entity.ProductMediaDocument
 
 data class ProductMediaRequest(
     val images: List<ProductImageRequest> = emptyList(),

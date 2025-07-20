@@ -1,7 +1,7 @@
 package com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.request
 
 import com.ethyllium.productservice.domain.model.PackageType
-import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.entity.ProductShippingDocument
+import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.postgres.entity.ProductShippingDocument
 import jakarta.validation.constraints.Min
 
 data class ProductShippingRequest(

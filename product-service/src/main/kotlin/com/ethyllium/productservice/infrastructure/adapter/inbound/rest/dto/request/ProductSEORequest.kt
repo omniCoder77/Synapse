@@ -1,6 +1,6 @@
 package com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.request
 
-import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.entity.ProductSEODocument
+import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.postgres.entity.ProductSEODocument
 import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
 

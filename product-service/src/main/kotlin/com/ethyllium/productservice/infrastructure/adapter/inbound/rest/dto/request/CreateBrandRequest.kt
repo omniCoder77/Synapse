@@ -1,7 +1,7 @@
 package com.ethyllium.productservice.infrastructure.adapter.inbound.rest.dto.request
 
 import com.ethyllium.productservice.domain.model.Brand
-import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.entity.BrandDocument
+import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.postgres.entity.BrandDocument
 
 data class CreateBrandRequest(
     val name: String,

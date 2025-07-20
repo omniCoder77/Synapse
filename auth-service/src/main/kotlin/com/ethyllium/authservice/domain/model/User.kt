@@ -11,6 +11,7 @@ class User(
     val isEnabled: Boolean = true,
     val isMfaEnabled: Boolean = false,
     val phoneNumber: String,
+    val totp: String?
 )
 
 enum class Role {

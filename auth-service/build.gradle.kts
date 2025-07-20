@@ -28,7 +28,6 @@ dependencies {
         exclude(group = "org.springframework.boot", module = "spring-boot-starter-tomcat")
     }
     implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
-    implementation("org.springframework.cloud:spring-cloud-starter-config")
     compileOnly("jakarta.servlet:jakarta.servlet-api")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
@@ -55,6 +54,7 @@ dependencies {
     implementation("org.springframework.cloud:spring-cloud-starter-loadbalancer")
     implementation("io.micrometer:micrometer-registry-prometheus:1.15.1")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
 
     //---
@@ -105,7 +105,6 @@ dependencies {
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("io.projectreactor:reactor-test")     // Reactor testing utilities
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")     // JUnit Platform Launcher
-
 }
 
 dependencyManagement {

@@ -1,6 +1,6 @@
 package com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.request
 
-import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.entity.DropShippingInfoDocument
+import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.postgres.entity.DropShippingInfoDocument
 import jakarta.validation.constraints.DecimalMin
 
 data class DropShippingInfoRequest(

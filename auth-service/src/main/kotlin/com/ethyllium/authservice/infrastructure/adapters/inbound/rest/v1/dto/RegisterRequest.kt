@@ -11,7 +11,8 @@ data class RegisterRequest(
     val mfa: Boolean,
     val deviceFingerprint: String,
     val phoneNumber: String,
-    val role: Role = Role.USER
+    val role: Role = Role.USER,
+    val totp : String? = null
 ) {
     fun toUser() = User(
         password = this.password,
@@ -19,6 +20,7 @@ data class RegisterRequest(
         email = this.email,
         isMfaEnabled = this.mfa,
         role = listOf(this.role),
-        phoneNumber = this.phoneNumber
+        phoneNumber = this.phoneNumber,
+        totp = totp
     )
 }

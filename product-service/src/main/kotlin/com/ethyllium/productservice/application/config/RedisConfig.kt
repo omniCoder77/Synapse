@@ -1,7 +1,13 @@
 package com.ethyllium.productservice.application.config
 
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Primary
 import org.springframework.core.io.ClassPathResource
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory
 import org.springframework.data.redis.core.ReactiveRedisTemplate
@@ -30,5 +36,16 @@ class RedisConfig {
     @Bean
     fun script(): RedisScript<Boolean> {
         return RedisScript.of(ClassPathResource("scripts/rateLimiter.lua"), Boolean::class.java)
+    }
+
+    @Bean
+    @Primary
+    fun objectMapper(): ObjectMapper {
+        return ObjectMapper().apply {
+            registerKotlinModule()
+            configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+            registerModule(JavaTimeModule())
+        }
     }
 }

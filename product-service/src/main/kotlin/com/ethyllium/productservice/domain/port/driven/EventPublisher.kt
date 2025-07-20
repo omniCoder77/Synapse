@@ -1,15 +1,10 @@
 package com.ethyllium.productservice.domain.port.driven
 
-import com.ethyllium.productservice.domain.model.Brand
-import com.ethyllium.productservice.domain.model.Category
-import com.ethyllium.productservice.domain.model.Product
-import com.ethyllium.productservice.domain.model.Seller
-import com.ethyllium.productservice.domain.model.WarehouseStock
-import reactor.core.publisher.Mono
+import com.ethyllium.productservice.domain.model.*
 
 interface EventPublisher {
     // Brand Events
-    fun publishBrandCreated(brand: Brand): Mono<Void>
+    fun publishBrandCreated(brand: Brand)
     fun publishBrandUpdated(
         brandId: String,
         fileUrl: String? = null,
@@ -18,36 +13,49 @@ interface EventPublisher {
         website: String? = null,
         slug: String? = null,
         name: String? = null
-    ): Mono<Void>
+    )
 
-    fun publishBrandDeleted(brandId: String): Mono<Void>
+    fun publishBrandDeleted(brandId: String)
 
     // Category Events
-    fun publishCategoryCreated(category: Category): Mono<Void>
+    fun publishCategoryCreated(category: Category)
     fun publishCategoryUpdated(
-        categoryId: String, name: String?, description: String?, slug: String?, parentId: String?
-    ): Mono<Void>
+        categoryId: String,
+        name: String?,
+        description: String?,
+        slug: String?,
+        parentId: String?,
+        imageUrl: String? = null
+    )
 
-    fun publishCategoryDeleted(categoryId: String): Mono<Void>
+    fun publishCategoryDeleted(categoryId: String)
 
     // Seller Events
-    fun publishSellerCreated(seller: Seller): Mono<Void>
+    fun publishSellerCreated(seller: Seller)
     fun publishSellerUpdated(
-        sellerId: String, businessName: String?, displayName: String?, phone: String?
-    ): Mono<Void>
+        sellerId: String,
+        businessName: String?,
+        displayName: String?,
+        address: Address?,
+        businessInfo: BusinessInfo?,
+        sellerRating: SellerRating?,
+        policies: SellerPolicies?,
+        bankDetails: BankDetails?,
+        taxInfo: TaxInfo?
+    )
 
-    fun publishSellerDeleted(sellerId: String): Mono<Void>
+    fun publishSellerDeleted(sellerId: String)
 
     // WarehouseStock Events
-    fun publishWarehouseStockCreated(warehouseStock: WarehouseStock): Mono<Void>
+    fun publishWarehouseStockCreated(warehouseStock: WarehouseStock)
     fun publishWarehouseStockUpdated(
         warehouseId: String, quantity: Int?, reservedQuantity: Int?, location: String?
-    ): Mono<Void>
+    )
 
-    fun publishWarehouseStockDeleted(warehouseId: String): Mono<Void>
+    fun publishWarehouseStockDeleted(warehouseId: String)
 
     // Product Events
-    fun publishProductCreated(product: Product): Mono<Void>
-    fun publishProductUpdated(product: Product): Mono<Void>
-    fun publishProductDeleted(productId: String): Mono<Void>
+    fun publishProductCreated(product: Product)
+    fun publishProductUpdated(product: Product)
+    fun publishProductDeleted(productId: String)
 }

@@ -7,7 +7,7 @@ import com.ethyllium.productservice.domain.model.ProductStatus
 import com.ethyllium.productservice.domain.model.ProductVisibility
 import com.ethyllium.productservice.domain.model.StockStatus
 import com.ethyllium.productservice.domain.model.WeightUnit
-import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.entity.toKafkaProductImage
+import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.postgres.entity.toKafkaProductImage
 import java.time.LocalDateTime
 
 data class ProductEvent(
@@ -75,7 +75,7 @@ data class ProductEvent(
         val alt: String? = null
     )
 }
-fun Product.toCreatedKafkaEvent(): ProductEvent {
+fun Product.toKafkaEvent(): ProductEvent {
     return ProductEvent(
         id = this.id,
         name = this.name,

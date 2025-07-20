@@ -4,17 +4,25 @@ import com.ethyllium.productservice.domain.model.*
 import com.ethyllium.productservice.domain.port.driven.EventPublisher
 import com.ethyllium.productservice.infrastructure.adapter.outbound.kafka.event.*
 import com.ethyllium.productservice.infrastructure.adapter.outbound.kafka.util.Topics
+import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.postgres.entity.OutboxEventEntity
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Component
-import reactor.core.publisher.Mono
 
 @Component
-class KafkaEventPublisherPublisher(private val kafkaTemplate: KafkaTemplate<String, Event>) : EventPublisher {
-    override fun publishBrandCreated(brand: Brand): Mono<Void> {
+class KafkaEventPublisherPublisher(
+    private val kafkaTemplate: KafkaTemplate<String, String>, private val reactiveMongoTemplate: ReactiveMongoTemplate
+) : EventPublisher {
+    override fun publishBrandCreated(brand: Brand) {
         val event = BrandCreatedEvent(
             brand.id!!, brand.name, brand.website, brand.description, brand.logoUrl, brand.slug
         )
-        return Mono.just(kafkaTemplate.send(Topics.BRAND_CREATED, event)).then()
+        val kafkaEvent = jacksonObjectMapper().writeValueAsString(event)
+        val outboxEvent = OutboxEventEntity(
+            eventTopic = Topics.BRAND_CREATED, payload = kafkaEvent
+        )
+        reactiveMongoTemplate.insert(outboxEvent).subscribe { kafkaTemplate.send(outboxEvent.eventTopic, kafkaEvent) }
     }
 
     override fun publishBrandUpdated(
@@ -25,7 +33,7 @@ class KafkaEventPublisherPublisher(private val kafkaTemplate: KafkaTemplate<Stri
         website: String?,
         slug: String?,
         name: String?
-    ): Mono<Void> {
+    ) {
         val event = BrandUpdatedEvent(
             brandId = brandId,
             fileUrl = fileUrl,
@@ -35,17 +43,25 @@ class KafkaEventPublisherPublisher(private val kafkaTemplate: KafkaTemplate<Stri
             slug = slug,
             name = name
         )
-        return Mono.just(kafkaTemplate.send(Topics.BRAND_UPDATED, event)).then()
+        val kafkaEvent = jacksonObjectMapper().writeValueAsString(event)
+        val outboxEvent = OutboxEventEntity(
+            eventTopic = Topics.BRAND_UPDATED, payload = kafkaEvent
+        )
+        reactiveMongoTemplate.insert(outboxEvent).subscribe { kafkaTemplate.send(Topics.BRAND_UPDATED, kafkaEvent) }
     }
 
-    override fun publishBrandDeleted(brandId: String): Mono<Void> {
+    override fun publishBrandDeleted(brandId: String) {
         val event = BrandDeletedEvent(
             brandId = brandId,
         )
-        return Mono.just(kafkaTemplate.send(Topics.BRAND_DELETED, event)).then()
+        val kafkaEvent = jacksonObjectMapper().writeValueAsString(event)
+        val outboxEvent = OutboxEventEntity(
+            eventTopic = Topics.BRAND_DELETED, payload = kafkaEvent
+        )
+        reactiveMongoTemplate.insert(outboxEvent).subscribe { kafkaTemplate.send(outboxEvent.eventTopic, kafkaEvent) }
     }
 
-    override fun publishCategoryCreated(category: Category): Mono<Void> {
+    override fun publishCategoryCreated(category: Category) {
         val event = CategoryCreatedEvent(
             id = category.id!!,
             name = category.name,
@@ -56,24 +72,41 @@ class KafkaEventPublisherPublisher(private val kafkaTemplate: KafkaTemplate<Stri
             path = category.path,
             imageUrl = category.imageUrl
         )
-        return Mono.just(kafkaTemplate.send(Topics.CATEGORY_CREATED, event)).then()
+        val kafkaEvent = jacksonObjectMapper().writeValueAsString(event)
+        val outboxEvent = OutboxEventEntity(
+            eventTopic = Topics.CATEGORY_CREATED, payload = kafkaEvent
+        )
+        reactiveMongoTemplate.insert(outboxEvent).subscribe { kafkaTemplate.send(outboxEvent.eventTopic, kafkaEvent) }
     }
 
     override fun publishCategoryUpdated(
-        categoryId: String, name: String?, description: String?, slug: String?, parentId: String?
-    ): Mono<Void> {
+        categoryId: String, name: String?, description: String?, slug: String?, parentId: String?, imageUrl: String?
+    ) {
         val event = CategoryUpdatedEvent(
-            categoryId = categoryId, name = name, description = description, slug = slug, parentId = parentId
+            categoryId = categoryId,
+            name = name,
+            description = description,
+            slug = slug,
+            parentId = parentId,
+            imageUrl = imageUrl
         )
-        return Mono.just(kafkaTemplate.send(Topics.CATEGORY_UPDATED, event)).then()
+        val kafkaEvent = jacksonObjectMapper().writeValueAsString(event)
+        val outboxEvent = OutboxEventEntity(
+            eventTopic = Topics.CATEGORY_UPDATED, payload = kafkaEvent
+        )
+        reactiveMongoTemplate.insert(outboxEvent).subscribe { kafkaTemplate.send(outboxEvent.eventTopic, kafkaEvent) }
     }
 
-    override fun publishCategoryDeleted(categoryId: String): Mono<Void> {
+    override fun publishCategoryDeleted(categoryId: String) {
         val event = CategoryDeletedEvent(categoryId)
-        return Mono.just(kafkaTemplate.send(Topics.CATEGORY_DELETED, event)).then()
+        val kafkaEvent = jacksonObjectMapper().writeValueAsString(event)
+        val outboxEvent = OutboxEventEntity(
+            eventTopic = Topics.CATEGORY_DELETED, payload = kafkaEvent
+        )
+        reactiveMongoTemplate.insert(outboxEvent).subscribe { kafkaTemplate.send(outboxEvent.eventTopic, kafkaEvent) }
     }
 
-    override fun publishSellerCreated(seller: Seller): Mono<Void> {
+    override fun publishSellerCreated(seller: Seller) {
         val event = SellerCreatedEvent(
             id = seller.id,
             businessName = seller.businessName,
@@ -87,24 +120,76 @@ class KafkaEventPublisherPublisher(private val kafkaTemplate: KafkaTemplate<Stri
             bankDetails = seller.bankDetails,
             taxInfo = seller.taxInfo
         )
-        return Mono.just(kafkaTemplate.send(Topics.SELLER_CREATED, event)).then()
+        val kafkaEvent = jacksonObjectMapper().writeValueAsString(event)
+        val outboxEvent = OutboxEventEntity(
+            eventTopic = Topics.SELLER_CREATED, payload = kafkaEvent
+        )
+        reactiveMongoTemplate.insert(outboxEvent).subscribe { kafkaTemplate.send(outboxEvent.eventTopic, kafkaEvent) }
     }
 
     override fun publishSellerUpdated(
-        sellerId: String, businessName: String?, displayName: String?, phone: String?
-    ): Mono<Void> {
+        sellerId: String,
+        businessName: String?,
+        displayName: String?,
+        address: Address?,
+        businessInfo: BusinessInfo?,
+        sellerRating: SellerRating?,
+        policies: SellerPolicies?,
+        bankDetails: BankDetails?,
+        taxInfo: TaxInfo?
+    ) {
         val event = SellerUpdatedEvent(
-            sellerId = sellerId, businessName = businessName, displayName = displayName, phone = phone
+            sellerId = sellerId,
+            businessName = businessName,
+            displayName = displayName,
+            street = address?.street,
+            city = address?.city,
+            state = address?.state,
+            postalCode = address?.postalCode,
+            country = address?.country,
+            coordinates = address?.coordinates,
+            businessType = businessInfo?.businessType,
+            registrationNumber = businessInfo?.registrationNumber,
+            taxId = businessInfo?.taxId,
+            website = businessInfo?.website,
+            description = businessInfo?.description,
+            yearEstablished = businessInfo?.yearEstablished,
+            employeeCount = businessInfo?.employeeCount,
+            averageRating = sellerRating?.averageRating ?: 0L,
+            totalRatings = sellerRating?.totalRatings ?: 0,
+            ratingDistribution = sellerRating?.ratingDistribution ?: emptyMap(),
+            badges = sellerRating?.badges ?: emptyList(),
+            returnPolicy = policies?.returnPolicy,
+            shippingPolicy = policies?.shippingPolicy,
+            privacyPolicy = policies?.privacyPolicy,
+            termsOfService = policies?.termsOfService,
+            warrantyPolicy = policies?.warrantyPolicy,
+            bankName = bankDetails?.bankName,
+            accountNumber = bankDetails?.accountNumber,
+            accountHolderName = bankDetails?.accountHolderName,
+            routingNumber = bankDetails?.routingNumber,
+            accountType = bankDetails?.accountType,
+            vatNumber = taxInfo?.vatNumber,
+            taxExempt = taxInfo?.taxExempt,
+            taxJurisdictions = taxInfo?.taxJurisdictions
         )
-        return Mono.just(kafkaTemplate.send(Topics.SELLER_UPDATED, event)).then()
+        val kafkaEvent = jacksonObjectMapper().writeValueAsString(event)
+        val outboxEvent = OutboxEventEntity(
+            eventTopic = Topics.SELLER_UPDATED, payload = kafkaEvent
+        )
+        reactiveMongoTemplate.insert(outboxEvent).subscribe { kafkaTemplate.send(outboxEvent.eventTopic, kafkaEvent) }
     }
 
-    override fun publishSellerDeleted(sellerId: String): Mono<Void> {
+    override fun publishSellerDeleted(sellerId: String) {
         val event = SellerDeletedEvent(sellerId)
-        return Mono.just(kafkaTemplate.send(Topics.SELLER_DELETED, event)).then()
+        val kafkaEvent = jacksonObjectMapper().writeValueAsString(event)
+        val outboxEvent = OutboxEventEntity(
+            eventTopic = Topics.SELLER_DELETED, payload = kafkaEvent
+        )
+        reactiveMongoTemplate.insert(outboxEvent).subscribe { kafkaTemplate.send(outboxEvent.eventTopic, kafkaEvent) }
     }
 
-    override fun publishWarehouseStockCreated(warehouseStock: WarehouseStock): Mono<Void> {
+    override fun publishWarehouseStockCreated(warehouseStock: WarehouseStock) {
         val event = WarehouseStockCreatedEvent(
             warehouseId = warehouseStock.warehouseId,
             warehouseName = warehouseStock.warehouseName,
@@ -112,35 +197,59 @@ class KafkaEventPublisherPublisher(private val kafkaTemplate: KafkaTemplate<Stri
             reservedQuantity = warehouseStock.reservedQuantity,
             location = warehouseStock.location
         )
-        return Mono.just(kafkaTemplate.send(Topics.WAREHOUSE_CREATED, event)).then()
+        val kafkaEvent = jacksonObjectMapper().writeValueAsString(event)
+        val outboxEvent = OutboxEventEntity(
+            eventTopic = Topics.WAREHOUSE_CREATED, payload = kafkaEvent
+        )
+        reactiveMongoTemplate.insert(outboxEvent).subscribe { kafkaTemplate.send(outboxEvent.eventTopic, kafkaEvent) }
     }
 
     override fun publishWarehouseStockUpdated(
         warehouseId: String, quantity: Int?, reservedQuantity: Int?, location: String?
-    ): Mono<Void> {
+    ) {
         val event = WarehouseStockUpdatedEvent(
             warehouseId = warehouseId, quantity = quantity, reservedQuantity = reservedQuantity, location = location
         )
-        return Mono.just(kafkaTemplate.send(Topics.WAREHOUSE_UPDATED, event)).then()
+        val kafkaEvent = jacksonObjectMapper().writeValueAsString(event)
+        val outboxEvent = OutboxEventEntity(
+            eventTopic = Topics.WAREHOUSE_UPDATED, payload = kafkaEvent
+        )
+        reactiveMongoTemplate.insert(outboxEvent).subscribe { kafkaTemplate.send(outboxEvent.eventTopic, kafkaEvent) }
     }
 
-    override fun publishWarehouseStockDeleted(warehouseId: String): Mono<Void> {
+    override fun publishWarehouseStockDeleted(warehouseId: String) {
         val event = WarehouseStockDeletedEvent(warehouseId)
-        return Mono.just(kafkaTemplate.send(Topics.WAREHOUSE_DELETED, event)).then()
+        val kafkaEvent = jacksonObjectMapper().writeValueAsString(event)
+        val outboxEvent = OutboxEventEntity(
+            eventTopic = Topics.WAREHOUSE_DELETED, payload = kafkaEvent
+        )
+        reactiveMongoTemplate.insert(outboxEvent).subscribe { kafkaTemplate.send(outboxEvent.eventTopic, kafkaEvent) }
     }
 
-    override fun publishProductCreated(product: Product): Mono<Void> {
-        val event = product.toCreatedKafkaEvent()
-        return Mono.just(kafkaTemplate.send(Topics.PRODUCT_CREATED, event)).then()
+    override fun publishProductCreated(product: Product) {
+        val event = product.toKafkaEvent()
+        val kafkaEvent = jacksonObjectMapper().writeValueAsString(event)
+        val outboxEvent = OutboxEventEntity(
+            eventTopic = Topics.PRODUCT_CREATED, payload = kafkaEvent
+        )
+        reactiveMongoTemplate.insert(outboxEvent).subscribe { kafkaTemplate.send(outboxEvent.eventTopic, kafkaEvent) }
     }
 
-    override fun publishProductUpdated(product: Product): Mono<Void> {
-        val event = product.toCreatedKafkaEvent()
-        return Mono.just(kafkaTemplate.send(Topics.PRODUCT_UPDATED, event)).then()
+    override fun publishProductUpdated(product: Product) {
+        val event = product.toKafkaEvent()
+        val kafkaEvent = jacksonObjectMapper().writeValueAsString(event)
+        val outboxEvent = OutboxEventEntity(
+            eventTopic = Topics.PRODUCT_UPDATED, payload = kafkaEvent
+        )
+        reactiveMongoTemplate.insert(outboxEvent).subscribe { kafkaTemplate.send(outboxEvent.eventTopic, kafkaEvent) }
     }
 
-    override fun publishProductDeleted(productId: String): Mono<Void> {
+    override fun publishProductDeleted(productId: String) {
         val event = ProductDeletedEvent(productId)
-        return Mono.just(kafkaTemplate.send(Topics.PRODUCT_DELETED, event)).then()
+        val kafkaEvent = jacksonObjectMapper().writeValueAsString(event)
+        val outboxEvent = OutboxEventEntity(
+            eventTopic = Topics.PRODUCT_DELETED, payload = kafkaEvent
+        )
+        reactiveMongoTemplate.insert(outboxEvent).subscribe { kafkaTemplate.send(outboxEvent.eventTopic, kafkaEvent) }
     }
 }
