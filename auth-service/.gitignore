@@ -85,3 +85,4 @@ replay_pid*
 .Trash-*
 .nfs*
 src/main/resources/jwtKeystore.jceks
+src/main/resources/*.http

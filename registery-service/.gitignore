@@ -9,6 +9,7 @@ build/
 .apt_generated
 .classpath
 .factorypath
+src/main/resources/*.http
 .project
 .settings
 .springBeans

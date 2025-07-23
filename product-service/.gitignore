@@ -10,6 +10,7 @@ build/
 .project
 .settings
 .springBeans
+src/main/resources/*.http
 .sts4-cache
 .env
 bin/
