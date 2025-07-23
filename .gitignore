@@ -2,3 +2,6 @@
 Synapse.iml
 .env
 keystore.jks
+kafka_jaas.conf
+mongo-init.js
+config
