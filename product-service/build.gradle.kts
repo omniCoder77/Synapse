@@ -11,7 +11,7 @@ version = "0.0.1-SNAPSHOT"
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(23)
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
@@ -32,8 +32,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
     implementation("org.springframework.boot:spring-boot-starter-mail")
-    implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+    implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-webflux") {
         exclude(group = "org.springframework.boot", module = "spring-boot-starter-tomcat")
@@ -45,7 +45,6 @@ dependencies {
     // ======================
     implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j")
     implementation("org.springframework.cloud:spring-cloud-starter-loadbalancer")
-    implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
 
     // ======================
     //  Kotlin & Coroutines
@@ -79,7 +78,7 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-impl:0.12.6")
     implementation("io.jsonwebtoken:jjwt-jackson:0.12.6")
     implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
-    compileOnly("jakarta.servlet:jakarta.servlet-api")
+    implementation("jakarta.servlet:jakarta.servlet-api")
 
     // ======================
     //  Third-party Services
@@ -149,4 +148,7 @@ protobuf {
             }
         }
     }
+}
+dependencyLocking {
+    lockAllConfigurations()
 }

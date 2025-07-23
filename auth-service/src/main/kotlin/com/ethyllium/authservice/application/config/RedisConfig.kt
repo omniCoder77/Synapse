@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.core.io.ClassPathResource
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory
 import org.springframework.data.redis.connection.RedisConnectionFactory
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory
 import org.springframework.data.redis.core.ReactiveRedisOperations
 import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.data.redis.core.StringRedisTemplate
@@ -18,11 +17,6 @@ import org.springframework.data.redis.serializer.*
 
 @Configuration
 class RedisConfig {
-
-    @Bean
-    fun redisConnectionFactory(): ReactiveRedisConnectionFactory {
-        return LettuceConnectionFactory()
-    }
 
     @Bean
     fun stringRedisTemplate(redisConnectionFactory: RedisConnectionFactory): StringRedisTemplate {

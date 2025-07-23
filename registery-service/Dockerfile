@@ -1,23 +1,34 @@
-FROM openjdk:21-jdk-slim as builder
+FROM eclipse-temurin:21-jdk AS builder
+
+ARG GRADLE_USER_HOME=/root/.gradle
+ENV GRADLE_USER_HOME=$GRADLE_USER_HOME
 
 WORKDIR /app
 
 COPY gradlew .
 COPY gradle ./gradle
-COPY build.gradle.kts .
-COPY settings.gradle.kts .
 
-RUN ./gradlew dependencies
+RUN --mount=type=cache,target=${GRADLE_USER_HOME} \
+    --mount=type=cache,target=${GRADLE_USER_HOME}/wrapper \
+    chmod +x ./gradlew && ./gradlew --version --no-daemon
+
+COPY settings.gradle.kts ./
+COPY *.lockfile ./
+COPY build.gradle.kts ./
+
+RUN --mount=type=cache,target=${GRADLE_USER_HOME} \
+    --mount=type=cache,target=${GRADLE_USER_HOME}/wrapper \
+    ./gradlew dependencies --no-daemon --console=plain
 
 COPY src ./src
 
-RUN ./gradlew clean build -x test
+RUN --mount=type=cache,target=${GRADLE_USER_HOME} \
+    --mount=type=cache,target=${GRADLE_USER_HOME}/wrapper \
+    ./gradlew build --no-daemon -x test --console=plain
 
-FROM openjdk:21-jre-slim
-
+FROM eclipse-temurin:21-jre-alpine AS runtime
+RUN apk add --no-cache curl
 WORKDIR /app
-
-COPY keystore.jks .
 
 COPY --from=builder /app/build/libs/*.jar app.jar
 

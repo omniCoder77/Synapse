@@ -1,16 +1,21 @@
-.gradle
-.kotlin
-build/classes
-build/kotlin
-build/reports
-build/resources
-build/test-results
-build/tmp
-build/resolvedMainClassName
-gradle
-.gitattributes
+# .dockerignore file
+.git
 .gitignore
-auth-service.iml
-HELP.md
-gradlew
-gradlew.bat
+*.md
+build/
+target/
+.gradle/
+.idea/
+*.iml
+*.log
+node_modules/
+dist/
+
+# Keep only essential files for build
+!src/
+!build.gradle.kts
+!settings.gradle.kts
+!gradlew
+!gradle/
+!gradle.properties
+!*.lockfile

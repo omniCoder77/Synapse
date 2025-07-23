@@ -78,9 +78,9 @@ dependencies {
     //---
 
     // Utilities & Helper Libraries
+    implementation("commons-codec:commons-codec:1.18.0")     // Commons Codec
     implementation("org.springframework.retry:spring-retry:2.0.11")     // Spring Retry
     implementation("commons-validator:commons-validator:1.9.0")     // Commons Validator
-    implementation("commons-codec:commons-codec:1.18.0")     // Commons Codec
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.0")     // Caffeine cache
 
     //---
@@ -127,4 +127,8 @@ allOpen {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+dependencyLocking {
+    lockAllConfigurations()
 }

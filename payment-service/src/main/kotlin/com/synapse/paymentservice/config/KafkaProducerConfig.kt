@@ -14,12 +14,13 @@ import org.springframework.kafka.support.serializer.JsonSerializer
 @Configuration
 class KafkaProducerConfig(
     @Value("\${transaction.id.prefix}") private val transactionIdPrefix: String,
+    @Value("\${spring.kafka.bootstrap-servers}") private val kafkaBootstrapServers: String,
 ) {
 
     @Bean
     fun producerFactory(): ProducerFactory<String, DomainEvent> {
         val configProps = mapOf(
-            ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to "localhost:9092",
+            ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to kafkaBootstrapServers,
             ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
             ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to JsonSerializer::class.java
         )
