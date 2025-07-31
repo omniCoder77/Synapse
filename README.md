@@ -53,114 +53,102 @@ Synapse employs a state-of-the-art microservices architecture where services are
 * Downstream services consume these events to perform their part of the business process, triggering a **SAGA** for distributed transactions.
 * For read operations, the Gateway routes to query services like the **Search Service**, which serves data from its optimized Elasticsearch index.
 ```mermaid
-graph TB
-    %% Client Layer
-    subgraph "🌐 Client Layer"
-        Web["🖥️ Web Browser"]
-        Mobile["📱 Mobile App"]
+flowchart TD
+    subgraph Clients
+        direction LR
+        User["<div style='font-size: 1.2em; font-weight: bold; color: black;'>👤 End User</div><div style='font-size: 0.9em; color: black;'>Browser/Mobile App</div>"]
+    end
+
+    subgraph "Network & API Layer"
+        direction LR
+        Gateway["<div style='font-size: 1.2em; font-weight: bold; color: black;'>🌐 API Gateway</div><div style='font-size: 0.9em; color: black;'>Spring Cloud Gateway<br/>Routing, Rate Limiting, Security</div>"]
+    end
+
+    subgraph "Core Business Services"
+        direction TB
+        Auth["<strong style='color: black;'>🔐 Auth Service</strong><br/><span style='color: black;'>User Mgmt, JWT, MFA</span>"]
+        Product["<strong style='color: black;'>📦 Product Service</strong><br/><span style='color: black;'>Catalog & Inventory Mgmt</span>"]
+        Order["<strong style='color: black;'>🛒 Order Service</strong><br/><span style='color: black;'>Order Lifecycle & SAGA Initiator</span>"]
+        Payment["<strong style='color: black;'>💳 Payment Service</strong><br/><span style='color: black;'>Payment Processing & Webhooks</span>"]
     end
     
-    %% API Gateway Layer
-    subgraph "🚪 Gateway Layer"
-        Gateway["🌐 API Gateway<br/>Spring Cloud Gateway<br/>:8080"]
-        LB["⚖️ Load Balancer"]
+    subgraph "Data Query & Search Services"
+        direction TB
+        Search["<strong style='color: black;'>🔍 Search Service</strong><br/><span style='color: black;'>Elasticsearch-based Queries</span>"]
+    end
+
+    subgraph "Service Discovery"
+        Registry["<strong style='color: black;'>🧭 Registry Service</strong><br/><span style='color: black;'>Netflix Eureka</span>"]
+    end
+
+    subgraph "Event Backbone & Data Pipeline"
+        direction TB
+        Kafka["<div style='font-size: 1.2em; font-weight: bold; color: black;'>📬 Apache Kafka</div><div style='font-size: 0.9em; color: black;'>Durable Event Bus</div>"] --- Debezium["<strong style='color: black;'>🔄 Debezium Connect</strong><br/><span style='color: black;'>Change Data Capture</span>"]
+    end
+
+    subgraph "Data Persistence Layer"
+        direction LR
+        Postgres[("<span style='color: black;'>🐘<br/><strong>PostgreSQL</strong><br/>Auth, Orders, Payments<br/>Transactional Data & Outbox</span>")]
+        Mongo[("<span style='color: black;'>🍃<br/><strong>MongoDB</strong><br/>Product Catalog<br/>Flexible Documents & Outbox</span>")]
+        Elasticsearch[("<span style='color: black;'>⚡<br/><strong>Elasticsearch</strong><br/>Denormalized Search Index</span>")]
+        Redis[("<span style='color: black;'>🔧<br/><strong>Redis (ReBloom)</strong><br/>Cache, Sessions, Cuckoo Filters</span>")]
     end
     
-    %% Core Services Layer
-    subgraph "🏗️ Core Services"
-        Auth["🔐 Auth Service<br/>Spring WebFlux + R2DBC<br/>:8081"]
-        Product["📦 Product Service<br/>Spring WebFlux + MongoDB<br/>:8084 | gRPC:9090"]
-        Order["🛒 Order Service<br/>Spring WebFlux + R2DBC<br/>:8082"]
-        Payment["💳 Payment Service<br/>Spring Web + JPA<br/>:8083"]
-        Search["🔍 Search Service<br/>Spring WebFlux + Elasticsearch<br/>:8085"]
+    subgraph "External Integrations"
+        direction TB
+        Twilio["<strong style='color: black;'>📱 Twilio</strong><br/><span style='color: black;'>SMS OTP Service</span>"]
+        Razorpay["<strong style='color: black;'>💵 Razorpay</strong><br/><span style='color: black;'>Payment Gateway</span>"]
     end
+
+    User -->|HTTPS API Calls| Gateway
+
+    Gateway -->|Routes Traffic| Auth
+    Gateway -->|Routes Traffic| Product
+    Gateway -->|Routes Traffic| Order
+    Gateway -->|Routes Traffic| Search
     
-    %% Infrastructure Services
-    subgraph "⚙️ Infrastructure"
-        Registry["🧭 Service Registry<br/>Netflix Eureka<br/>:8761"]
-        Kafka["📬 Apache Kafka<br/>Event Streaming"]
-        CDC["🔄 Debezium CDC<br/>Change Data Capture"]
-    end
+    Gateway -.-> Registry
+    Auth -.-> Registry
+    Product -.-> Registry
+    Order -.-> Registry
+    Payment -.-> Registry
+    Search -.-> Registry
+
+    Auth -->|"R2DBC (Writes State + Outbox)"| Postgres
+    Product -->|"Reactive Mongo (Writes State + Outbox)"| Mongo
+    Order -->|"R2DBC (Writes State + Outbox)"| Postgres
+    Payment -->|"R2DBC (Writes State + Outbox)"| Postgres
     
-    %% Data Layer
-    subgraph "💾 Data Layer"
-        PostgresAuth[("🐘 PostgreSQL<br/>Auth & Orders")]
-        MongoDB[("🍃 MongoDB<br/>Product Catalog")]
-        Elasticsearch[("⚡ Elasticsearch<br/>Search Index")]
-        Redis[("🔧 Redis<br/>Cache & Sessions")]
-    end
+    Postgres -->|"Tails Transaction Log"| Debezium
+    Mongo -->|"Tails Oplog"| Debezium
+    Debezium -->|"Reliably Publishes Events"| Kafka
     
-    %% External Services
-    subgraph "🌍 External Services"
-        Razorpay["💵 Razorpay<br/>Payment Gateway"]
-        Twilio["📨 Twilio<br/>SMS Service"]
-        MailHog["📧 MailHog<br/>Email Testing"]
-    end
+    Kafka -->|"OrderCreated Event"| Payment
+    Kafka -->|"PaymentProcessed Event"| Product
+    Kafka -->|"InventoryReserved Event"| Order
+    Kafka -->|"Product/Seller Events"| Search
+
+    Search -->|"Indexes Data"| Elasticsearch
     
-    %% Client Connections
-    Web --> LB
-    Mobile --> LB
-    LB --> Gateway
-    
-    %% Gateway to Services
-    Gateway --> Auth
-    Gateway --> Product
-    Gateway --> Order
-    Gateway --> Payment
-    Gateway --> Search
-    
-    %% Service Discovery
-    Gateway -.->|register/discover| Registry
-    Auth -.->|register/discover| Registry
-    Product -.->|register/discover| Registry
-    Order -.->|register/discover| Registry
-    Payment -.->|register/discover| Registry
-    Search -.->|register/discover| Registry
-    
-    %% Data Connections
-    Auth --> PostgresAuth
-    Auth --> Redis
-    Order --> PostgresAuth
-    Product --> MongoDB
-    Product --> Redis
-    Search --> Elasticsearch
-    Search --> Redis
-    Payment --> PostgresAuth
-    
-    %% Service to Service Communication
-    Order -.->|gRPC| Product
-    Gateway --> Redis
-    
-    %% Event Streaming
-    Product -->|events| Kafka
-    Order -->|events| Kafka
-    Payment -->|events| Kafka
-    Kafka -->|consume| Search
-    
-    %% Change Data Capture
-    CDC -->|watch| PostgresAuth
-    CDC -->|watch| MongoDB
-    CDC -->|publish| Kafka
-    
-    %% External Service Connections
-    Auth --> Twilio
-    Auth --> MailHog
-    Payment --> Razorpay
-    
-    %% Styling
-    classDef clientStyle fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
-    classDef gatewayStyle fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000
-    classDef serviceStyle fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px,color:#000
-    classDef infraStyle fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
-    classDef dataStyle fill:#fce4ec,stroke:#880e4f,stroke-width:2px,color:#000
-    classDef externalStyle fill:#f1f8e9,stroke:#33691e,stroke-width:2px,color:#000
-    
-    class Web,Mobile clientStyle
-    class Gateway,LB gatewayStyle
-    class Auth,Product,Order,Payment,Search serviceStyle
-    class Registry,Kafka,CDC infraStyle
-    class PostgresAuth,MongoDB,Elasticsearch,Redis dataStyle
-    class Razorpay,Twilio,MailHog externalStyle
+    Order ==>|"gRPC (Product Validation)"| Product
+    Gateway -->|"Rate Limiting"| Redis
+    Auth -->|"Cuckoo Filter & Sessions"| Redis
+    Product -->|"Cuckoo Filter (SKU Check)"| Redis
+    Auth -->|"Sends OTP"| Twilio
+    Payment -->|"Processes Payments"| Razorpay
+
+    style User fill:#e0b2ff,stroke:#333,stroke-width:2px
+    style Gateway fill:#a7c7e7,stroke:#333,stroke-width:2px
+    style Kafka fill:#ffdd99,stroke:#333,stroke-width:2px
+    style Debezium fill:#c1e1c1,stroke:#333,stroke-width:2px
+    classDef service fill:#d4f0f0,stroke:#003366,stroke-width:2px
+    classDef querySvc fill:#f0e68c,stroke:#8b4513,stroke-width:2px
+    classDef infra fill:#f5f5dc,stroke:#808080,stroke-width:1px,stroke-dasharray: 5 5
+    classDef external fill:#ffb3ba,stroke:#a52a2a,stroke-width:1px
+    class Auth,Product,Order,Payment service
+    class Search querySvc
+    class Registry,Twilio,Razorpay external
+    class Postgres,Mongo,Elasticsearch,Redis infra
 ```
 
 💡 Design Patterns & Concepts Demonstrated
