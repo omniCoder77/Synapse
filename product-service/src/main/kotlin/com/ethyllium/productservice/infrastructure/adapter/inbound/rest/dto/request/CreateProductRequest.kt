@@ -2,7 +2,6 @@ package com.ethyllium.productservice.infrastructure.adapter.inbound.rest.dto.req
 
 import com.ethyllium.productservice.domain.model.*
 import com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.request.*
-import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.postgres.entity.ProductDocument
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
@@ -10,10 +9,6 @@ import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
 import java.time.Instant
 import java.time.ZoneOffset
-
-/**
- * The requesting client will be considered as seller
- */
 
 data class CreateProductRequest(
     @field:NotBlank(message = "Product name is required") @field:Size(
@@ -48,31 +43,40 @@ data class CreateProductRequest(
     val facets: Map<String, Any> = emptyMap(),
     val variantCode: String
 ) {
-    fun toDocument(sellerId: String) = ProductDocument(
-        name = name,
-        description = description,
-        shortDescription = shortDescription,
-        sku = sku,
-        categoryId = categoryId,
-        categoryPath = categoryPath,
-        barcode = barcode,
-        brandId = brandId,
-        sellerId = sellerId,
-        inventory = inventory.toDocument(),
-        specifications = specifications.toDocument(),
-        media = media.toDocument(),
-        shipping = shipping.toDocument(),
-        seo = seo.toDocument(),
-        tags = tags,
-        averageRating = 0.0,
-        pricing = pricing.toDocument(),
-        updatedAt = Instant.now(),
-        productStatus = status.name,
-        productVisibility = visibility.name,
-        searchTerms = searchTerms,
-        facets = facets,
-        variantCode = variantCode,
-    )
+    fun toDomain(sellerId: String): Product {
+        return Product(
+            name = this.name,
+            description = this.description,
+            shortDescription = this.shortDescription,
+            sku = this.sku,
+            barcode = this.barcode,
+            brand = Brand(id = this.brandId, name = "", slug = "", ownerId = ""),
+            category = Category(id = this.categoryId, name = "", slug = "", path = this.categoryPath),
+            seller = Seller(
+                id = sellerId,
+                businessName = "",
+                displayName = "",
+                email = "",
+                address = Address("", "", "", "", ""),
+                businessInfo = BusinessInfo(BusinessType.INDIVIDUAL),
+                policies = SellerPolicies(),
+                taxInfo = TaxInfo(),
+                sellerRating = SellerRating()
+            ),
+            pricing = this.pricing.toDomain(),
+            inventory = this.inventory.toDomain(),
+            specifications = this.specifications.toDomain(),
+            media = this.media.toDomain(),
+            seo = this.seo.toDomain(),
+            shipping = this.shipping.toDomain(),
+            tags = this.tags,
+            status = this.status,
+            visibility = this.visibility,
+            variantCode = this.variantCode,
+            reviews = ProductReviews(reviewsEnabled = this.reviewsEnabled),
+            metadata = ProductMetadata()
+        )
+    }
 }
 
 fun ProductPricingRequest.toDomain(): ProductPricing = ProductPricing(
@@ -100,10 +104,7 @@ fun ProductInventoryRequest.toDomain(): ProductInventory = ProductInventory(
     warehouseLocations.map { it.toDomain() })
 
 fun WarehouseStockRequest.toDomain(): WarehouseStock = WarehouseStock(
-    warehouseName = warehouseName,
-    quantity = quantity,
-    reservedQuantity = reservedQuantity,
-    location = location
+    warehouseName = warehouseName, quantity = quantity, reservedQuantity = reservedQuantity, location = location
 )
 
 fun ProductSpecificationsRequest.toDomain(): ProductSpecifications = ProductSpecifications(
@@ -134,12 +135,7 @@ fun ProductImageRequest.toDomain(): ProductImage =
     ProductImage(url = url, alt = alt, title = title, sortOrder = sortOrder, type = type)
 
 fun ProductVideoRequest.toDomain(): ProductVideo = ProductVideo(
-    url = url,
-    title = title,
-    description = description,
-    thumbnailUrl = thumbnailUrl,
-    duration = duration,
-    type = type
+    url = url, title = title, description = description, thumbnailUrl = thumbnailUrl, duration = duration, type = type
 )
 
 fun ProductDocumentRequest.toDomain(): ProductPage =

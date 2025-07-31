@@ -6,6 +6,7 @@ build/resources
 build/test-results
 build/tmp
 build/resolvedMainClassName
+src/test
 .gitattributes
 .gitignore
 auth-service.iml

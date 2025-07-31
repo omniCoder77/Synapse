@@ -1,17 +1,19 @@
 package com.ethyllium.productservice.application.service
 
+import com.ethyllium.productservice.application.util.CuckooFilterKey
 import com.ethyllium.productservice.domain.exception.ProductDuplicateException
 import com.ethyllium.productservice.domain.exception.ProductNotFoundException
 import com.ethyllium.productservice.domain.exception.ProductValidationException
 import com.ethyllium.productservice.domain.model.Product
 import com.ethyllium.productservice.domain.model.ProductStatus
 import com.ethyllium.productservice.domain.model.ProductVisibility
+import com.ethyllium.productservice.domain.port.driven.CuckooFilter
 import com.ethyllium.productservice.domain.port.driver.ProductService
+import com.ethyllium.productservice.infrastructure.adapter.inbound.rest.dto.request.UpdateProductRequest
 import com.ethyllium.productservice.infrastructure.adapter.inbound.rest.dto.response.ProductResponse
-import com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.request.UpdateProductRequest
-import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.postgres.entity.ProductDocument
-import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.postgres.entity.toDocument
-import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.postgres.entity.toDomain
+import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.mongodb.entity.ProductDocument
+import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.mongodb.entity.toDocument
+import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.mongodb.entity.toDomain
 import com.mongodb.MongoWriteException
 import org.bson.types.ObjectId
 import org.slf4j.LoggerFactory
@@ -19,21 +21,20 @@ import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.CachePut
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.dao.DuplicateKeyException
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageImpl
-import org.springframework.data.domain.Pageable
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 import java.time.Duration
 import java.time.Instant
 
 @Service
 class ProductServiceImpl(
     private val reactiveMongoTemplate: ReactiveMongoTemplate,
+    private val cuckooFilter: CuckooFilter,
 ) : ProductService {
 
     private val logger = LoggerFactory.getLogger(ProductServiceImpl::class.java)
@@ -43,8 +44,10 @@ class ProductServiceImpl(
         allEntries = true
     )
     override fun createProduct(product: Product, sellerId: String): Mono<Product> {
-        return validateCreateRequest(product).then(reactiveMongoTemplate.insert(product.toDocument()))
-            .map { it.toDomain() }
+        return validateCreateRequest(product).then(reactiveMongoTemplate.insert(product.toDocument())).map {
+            cuckooFilter.add(CuckooFilterKey.sku, product.sku).subscribeOn(Schedulers.boundedElastic()).subscribe()
+            it.toDomain()
+        }
     }
 
     @CacheEvict(
@@ -55,7 +58,7 @@ class ProductServiceImpl(
         if (requests.size > 100) {
             return Mono.error(ProductValidationException("Bulk creation limited to 100 products at once"))
         }
-        return validateCreateRequestsBulk(requests).then(checkSkuDuplicates(requests.map { it.sku })).then(
+        return Mono.just(checkSkuDuplicates(requests.map { it.sku })).then(
             reactiveMongoTemplate.insertAll(requests.map { it.toDocument() })
                 .then(Mono.just("Successfully created ${requests.size} products in bulk"))
                 .onErrorMap(DuplicateKeyException::class.java) {
@@ -69,7 +72,7 @@ class ProductServiceImpl(
         key = "#id"
     )
     @CachePut(value = ["productsById"], key = "#id")
-    override fun updateProduct(id: String, request: UpdateProductRequest): Mono<ProductResponse> {
+    override fun updateProduct(id: String, request: UpdateProductRequest, sellerId: String): Mono<ProductResponse> {
         logger.info("Updating product with ID: {}", id)
 
         val objectId = try {
@@ -78,12 +81,16 @@ class ProductServiceImpl(
             return Mono.error(ProductValidationException("Invalid product ID format: $id"))
         }
 
-        return reactiveMongoTemplate.findById(objectId, ProductDocument::class.java).switchIfEmpty(
+        return reactiveMongoTemplate.findOne(
+            Query.query(
+                Criteria.where("_id").`is`(ObjectId(id))
+            ).addCriteria(Criteria.where("sellerId").`is`(sellerId)), ProductDocument::class.java
+        ).switchIfEmpty(
             Mono.error(ProductNotFoundException("Product not found with ID: $id"))
         ).flatMap { existingProduct ->
             validateUpdateRequest(request, existingProduct.sku).then(
                 performUpdate(
-                    objectId, request, existingProduct
+                    objectId, request
                 )
             )
         }.doOnSuccess { logger.info("Product updated successfully with ID: {}", id) }
@@ -221,6 +228,7 @@ class ProductServiceImpl(
         return reactiveMongoTemplate.findById(objectId, ProductDocument::class.java).switchIfEmpty(
             Mono.error(ProductNotFoundException("Product not found with ID: $id"))
         ).flatMap { product ->
+            cuckooFilter.remove(CuckooFilterKey.sku, product.sku).subscribeOn(Schedulers.boundedElastic()).subscribe()
             reactiveMongoTemplate.remove(
                 Query.query(Criteria.where("_id").`is`(objectId)), ProductDocument::class.java
             )
@@ -290,77 +298,28 @@ class ProductServiceImpl(
         ).cache(Duration.ofMinutes(10))
     }
 
-    // Helper methods
-    private fun validateCreateRequest(request: Product): Mono<Void> {
-        return reactiveMongoTemplate.exists(
-            Query.query(Criteria.where(ProductDocument::sku.name).`is`(request.sku)), ProductDocument::class.java
-        ).flatMap { exists ->
-            if (exists) {
-                Mono.error(ProductDuplicateException("Product with SKU '${request.sku}' already exists"))
-            } else {
-                validateBusinessRules(request.pricing, request.inventory)
-            }
-        }
+    private fun validateCreateRequest(request: Product): Mono<Boolean> {
+        return cuckooFilter.exists(CuckooFilterKey.sku, request.sku)
     }
 
-    private fun validateCreateRequestsBulk(requests: List<Product>): Mono<Void> {
-        return Mono.fromCallable {
-            requests.forEach { request ->
-                validateBusinessRulesSync(request.pricing, request.inventory)
-            }
-        }.then()
-    }
-
-    private fun checkSkuDuplicates(skus: List<String>): Mono<Void> {
-        // Check for duplicates within the request
+    private fun checkSkuDuplicates(skus: List<String>): Mono<Boolean> {
         val duplicateSkus = skus.groupingBy { it }.eachCount().filter { it.value > 1 }.keys
         if (duplicateSkus.isNotEmpty()) {
             return Mono.error(ProductValidationException("Duplicate SKUs in request: ${duplicateSkus.joinToString()}"))
         }
 
-        // Check for existing SKUs in database
-        return reactiveMongoTemplate.exists(
-            Query.query(Criteria.where(ProductDocument::sku.name).`in`(skus)), ProductDocument::class.java
-        ).flatMap { exists ->
-            if (exists) {
-                Mono.error(ProductDuplicateException("One or more SKUs already exist"))
-            } else {
-                Mono.empty()
-            }
-        }
+        return cuckooFilter.exists(CuckooFilterKey.sku, *skus.toTypedArray())
+            .map { booleanList -> booleanList.all { it } }
     }
 
-    private fun validateUpdateRequest(request: UpdateProductRequest, currentSku: String): Mono<Void> {
-        return request.sku?.let { newSku ->
-            if (newSku != currentSku) {
-                reactiveMongoTemplate.exists(
-                    Query.query(Criteria.where(ProductDocument::sku.name).`is`(newSku)), ProductDocument::class.java
-                ).flatMap { exists ->
-                    if (exists) {
-                        Mono.error(ProductDuplicateException("Product with SKU '$newSku' already exists"))
-                    } else {
-                        validateBusinessRules(request.pricing, request.inventory)
-                    }
-                }
-            } else {
-                validateBusinessRules(request.pricing, request.inventory)
-            }
-        } ?: validateBusinessRules(request.pricing, request.inventory)
-    }
-
-    private fun validateBusinessRules(pricing: Any?, inventory: Any?): Mono<Void> {
-        return Mono.fromCallable {
-            validateBusinessRulesSync(pricing, inventory)
-        }.then()
-    }
-
-    private fun validateBusinessRulesSync(pricing: Any?, inventory: Any?) {
-        // Add your business rule validations here
-        // This is a placeholder - implement according to your domain model
+    private fun validateUpdateRequest(request: UpdateProductRequest, currentSku: String): Mono<Boolean> {
+        return request.sku?.let {
+            cuckooFilter.exists(CuckooFilterKey.sku, request.sku)
+        } ?: Mono.just(true)
     }
 
     private fun performUpdate(
-        objectId: ObjectId, request: UpdateProductRequest, existingProduct: ProductDocument
+        objectId: ObjectId, request: UpdateProductRequest
     ): Mono<ProductResponse> {
         val update = Update().set(ProductDocument::updatedAt.name, Instant.now())
 
@@ -370,15 +329,17 @@ class ProductServiceImpl(
         request.barcode?.let { update.set(ProductDocument::barcode.name, it) }
         request.brandId?.let { update.set(ProductDocument::brandId.name, it) }
         request.categoryId?.let { update.set(ProductDocument::categoryId.name, it) }
-        request.pricing?.let { update.set(ProductDocument::pricing.name, it) }
-        request.inventory?.let { update.set(ProductDocument::inventory.name, it) }
-        request.specifications?.let { update.set(ProductDocument::specifications.name, it) }
-        request.media?.let { update.set(ProductDocument::media.name, it) }
-        request.seo?.let { update.set(ProductDocument::seo.name, it) }
-        request.shipping?.let { update.set(ProductDocument::shipping.name, it) }
+
+        request.pricing?.let { update.set(ProductDocument::pricing.name, it.toDocument()) }
+        request.inventory?.let { update.set(ProductDocument::inventory.name, it.toDocument()) }
+        request.specifications?.let { update.set(ProductDocument::specifications.name, it.toDocument()) }
+        request.media?.let { update.set(ProductDocument::media.name, it.toDocument()) }
+        request.seo?.let { update.set(ProductDocument::seo.name, it.toDocument()) }
+        request.shipping?.let { update.set(ProductDocument::shipping.name, it.toDocument()) }
+
         request.tags?.let { update.set(ProductDocument::tags.name, it) }
-        request.status?.let { update.set(ProductDocument::productStatus.name, it) }
-        request.visibility?.let { update.set(ProductDocument::productVisibility.name, it) }
+        request.status?.let { update.set(ProductDocument::productStatus.name, it.name) }
+        request.visibility?.let { update.set(ProductDocument::productVisibility.name, it.name) }
         request.sku?.let { update.set(ProductDocument::sku.name, it) }
 
         return reactiveMongoTemplate.updateFirst(
@@ -389,19 +350,6 @@ class ProductServiceImpl(
             } else {
                 reactiveMongoTemplate.findById(objectId, ProductDocument::class.java).map { it.toResponse() }
             }
-        }
-    }
-
-    private fun <T> getPagedResults(
-        query: Query, pageable: Pageable, mapper: (ProductDocument) -> T
-    ): Mono<Page<T>> {
-        val countQuery = Query.of(query).limit(0).skip(0)
-
-        return Mono.zip(
-            reactiveMongoTemplate.count(countQuery, ProductDocument::class.java),
-            reactiveMongoTemplate.find(query.with(pageable), ProductDocument::class.java).collectList()
-        ).map {
-            PageImpl(it.t2.map(mapper), pageable, it.t1)
         }
     }
 }

@@ -1,0 +1,13 @@
+{
+  "name": "product-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.mongodb.MongoDbConnector",
+    "tasks.max": "1",
+    "mongodb.name": "product_db_server",
+    "database.include.list": "products",
+    "collection.include.list": "products.outbox_event",
+    "mongodb.connection.string": "mongodb://mongo:27017/products?replicaSet=rs0",
+
+    "topic.prefix": "product"
+  }
+}

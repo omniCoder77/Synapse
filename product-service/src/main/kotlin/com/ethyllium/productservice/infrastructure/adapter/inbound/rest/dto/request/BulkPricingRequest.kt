@@ -1,6 +1,6 @@
 package com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.request
 
-import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.postgres.entity.BulkPricingDocument
+import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.mongodb.entity.BulkPricingDocument
 import jakarta.validation.constraints.DecimalMax
 import jakarta.validation.constraints.DecimalMin
 import jakarta.validation.constraints.Min

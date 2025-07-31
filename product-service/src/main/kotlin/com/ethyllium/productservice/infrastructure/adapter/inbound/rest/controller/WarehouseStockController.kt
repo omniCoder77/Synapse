@@ -4,7 +4,10 @@ import com.ethyllium.productservice.domain.model.WarehouseStock
 import com.ethyllium.productservice.domain.port.driver.WarehouseStockService
 import com.ethyllium.productservice.infrastructure.adapter.inbound.rest.dto.request.CreateWarehouseStockRequest
 import com.ethyllium.productservice.infrastructure.adapter.inbound.rest.dto.request.UpdateWarehouseStockRequest
+import com.ethyllium.productservice.infrastructure.adapter.inbound.rest.dto.response.ApiResponse
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 import java.net.URI
@@ -16,34 +19,38 @@ class WarehouseStockController(
 ) {
 
     @PostMapping
-    fun createWarehouseStock(@RequestBody createWarehouseStockRequest: CreateWarehouseStockRequest): Mono<ResponseEntity<WarehouseStock>> {
+    @PreAuthorize("hasRole('ADMIN')")
+    fun createWarehouseStock(@RequestBody createWarehouseStockRequest: CreateWarehouseStockRequest): Mono<ResponseEntity<ApiResponse<WarehouseStock>>> {
         return warehouseStockService.create(createWarehouseStockRequest.toWarehouseStock()).map { createdWarehouseStock ->
-            ResponseEntity.created(URI.create("/api/v1/warehouses/${createdWarehouseStock.warehouseId}"))
-                .body(createdWarehouseStock)
+            val location = URI.create("/api/v1/warehouses/${createdWarehouseStock.warehouseId}")
+            ResponseEntity.created(location)
+                .body(ApiResponse.success(createdWarehouseStock, "Warehouse created successfully."))
         }
     }
 
     @PatchMapping("/{warehouseId}")
+    @PreAuthorize("hasRole('ADMIN')")
     fun updateWarehouseStock(
         @PathVariable warehouseId: String,
         @RequestBody updateWarehouseStockRequest: UpdateWarehouseStockRequest
-    ): Mono<ResponseEntity<String>> {
+    ): Mono<ResponseEntity<ApiResponse<String>>> {
         return warehouseStockService.update(
             warehouseId,
             updateWarehouseStockRequest.quantity,
             updateWarehouseStockRequest.reservedQuantity,
             updateWarehouseStockRequest.location
-        ).map { updatedWarehouseStock ->
-            if (!updatedWarehouseStock) ResponseEntity.badRequest().body("Failed to update warehouse stock")
-            else ResponseEntity.ok("Warehouse stock updated successfully")
+        ).map { updated ->
+            if (updated) ResponseEntity.ok(ApiResponse.success("Warehouse stock updated successfully"))
+            else ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Warehouse not found or no changes were made."))
         }
     }
 
     @DeleteMapping("/{warehouseId}")
-    fun deleteWarehouseStock(@PathVariable warehouseId: String): Mono<ResponseEntity<String>> {
+    @PreAuthorize("hasRole('ADMIN')")
+    fun deleteWarehouseStock(@PathVariable warehouseId: String): Mono<ResponseEntity<ApiResponse<String>>> {
         return warehouseStockService.delete(warehouseId).map { deleted ->
-            if (!deleted) ResponseEntity.badRequest().body("Failed to delete warehouse stock")
-            else ResponseEntity.ok("Warehouse stock deleted successfully")
+            if (deleted) ResponseEntity.ok(ApiResponse.success("Warehouse stock deleted successfully"))
+            else ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Warehouse not found."))
         }
     }
 }

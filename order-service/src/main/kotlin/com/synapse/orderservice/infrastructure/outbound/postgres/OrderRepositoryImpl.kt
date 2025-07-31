@@ -1,7 +1,6 @@
 package com.synapse.orderservice.infrastructure.outbound.postgres
 
-import com.synapse.orderservice.domain.model.Order
-import com.synapse.orderservice.domain.model.OrderStatus
+import com.synapse.orderservice.domain.model.*
 import com.synapse.orderservice.domain.port.driven.OrderRepository
 import com.synapse.orderservice.infrastructure.outbound.postgres.entity.OrderEntity
 import com.synapse.orderservice.infrastructure.outbound.postgres.entity.toEntity
@@ -11,6 +10,7 @@ import org.springframework.data.relational.core.query.Query
 import org.springframework.data.relational.core.query.Update
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
+import java.time.LocalDateTime
 import java.util.*
 
 /**
@@ -87,6 +87,49 @@ class OrderRepositoryImpl(private val r2dbcEntityTemplate: R2dbcEntityTemplate) 
         val update = Update.update("status", status)
         return r2dbcEntityTemplate.update(
             Query.query(Criteria.where("tracking_id").`is`(trackingId)), update, OrderEntity::class.java
+        ).map { it > 0 }
+    }
+
+    override fun updateOrder(
+        orderStatus: OrderStatus?,
+        subtotal: Double?,
+        taxAmount: Double?,
+        shippingAmount: Double?,
+        discountAmount: Double?,
+        currency: String?,
+        billingAddress: Address?,
+        shippingAddress: Address?,
+        notes: String?,
+        confirmedAt: LocalDateTime?,
+        cancelledAt: LocalDateTime?,
+        paymentMethod: PaymentMethod?,
+        paymentProvider: String?,
+        paymentStatus: PaymentStatus?,
+        providerPaymentId: String?,
+        userId: String,
+        orderId: String
+    ): Mono<Boolean> {
+        val update = Update.update("user_id", userId).apply {
+            orderStatus?.let { set("order_status", it.name) }
+            subtotal?.let { set("subtotal", it) }
+            taxAmount?.let { set("tax_amount", it) }
+            shippingAmount?.let { set("shipping_amount", it) }
+            discountAmount?.let { set("discount_amount", it) }
+            currency?.let { set("currency", it) }
+            billingAddress?.let { set("billing_address", it) }
+            shippingAddress?.let { set("shipping_address", it) }
+            notes?.let { set("notes", it) }
+            confirmedAt?.let { set("confirmed_at", it) }
+            cancelledAt?.let { set("cancelled_at", it) }
+            paymentMethod?.let { set("payment_method", it.name) }
+            paymentProvider?.let { set("payment_provider", it) }
+            paymentStatus?.let { set("payment_status", it.name) }
+            providerPaymentId?.let { set("provider_payment_id", it) }
+        }
+        return r2dbcEntityTemplate.update(
+            Query.query(Criteria.where("order_id").`is`(orderId).and(Criteria.where("user_id").`is`(userId))),
+            update,
+            OrderEntity::class.java
         ).map { it > 0 }
     }
 }

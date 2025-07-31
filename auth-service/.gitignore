@@ -12,6 +12,7 @@ build/
 .env
 .springBeans
 .sts4-cache
+../test-tokens.txt
 bin/
 /src/main/resources/http
 !**/src/main/**/bin/

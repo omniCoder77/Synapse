@@ -1,8 +1,8 @@
 package com.synapse.orderservice.domain.port.driven
 
-import com.synapse.orderservice.domain.model.Order
-import com.synapse.orderservice.domain.model.OrderStatus
+import com.synapse.orderservice.domain.model.*
 import reactor.core.publisher.Mono
+import java.time.LocalDateTime
 import java.util.*
 
 /**
@@ -64,4 +64,24 @@ interface OrderRepository {
      * @throws IllegalStateException if attempting an invalid status transition
      */
     fun updateOrderStatus(trackingId: String, status: OrderStatus): Mono<Boolean>
+
+    fun updateOrder(
+        orderStatus: OrderStatus? = null,
+        subtotal: Double? = null,
+        taxAmount: Double? = null,
+        shippingAmount: Double? = null,
+        discountAmount: Double? = null,
+        currency: String? = null,
+        billingAddress: Address? = null,
+        shippingAddress: Address? = null,
+        notes: String?? = null,
+        confirmedAt: LocalDateTime?? = null,
+        cancelledAt: LocalDateTime?? = null,
+        paymentMethod: PaymentMethod? = null,
+        paymentProvider: String?? = null,
+        paymentStatus: PaymentStatus? = null,
+        providerPaymentId: String?? = null,
+        userId: String,
+        orderId: String,
+    ): Mono<Boolean>
 }

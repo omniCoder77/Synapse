@@ -7,7 +7,7 @@ import com.ethyllium.productservice.domain.model.ProductStatus
 import com.ethyllium.productservice.domain.model.ProductVisibility
 import com.ethyllium.productservice.domain.model.StockStatus
 import com.ethyllium.productservice.domain.model.WeightUnit
-import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.postgres.entity.toKafkaProductImage
+import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.mongodb.entity.toKafkaProductImage
 import java.time.LocalDateTime
 
 data class ProductEvent(

@@ -1,6 +1,6 @@
-package com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.response
+package com.ethyllium.productservice.infrastructure.adapter.inbound.rest.dto.response
 
-import com.ethyllium.productservice.domain.model.PackageType
+import com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.response.DropShippingInfoResponse
 
 data class ProductShippingResponse(
     val shippable: Boolean,
@@ -8,7 +8,7 @@ data class ProductShippingResponse(
     val shippingClass: String?,
     val shippingRestrictions: List<String>,
     val handlingTime: Int,
-    val packageType: PackageType,
+    val packageType: String,
     val hazardousMaterial: Boolean,
     val requiresSignature: Boolean,
     val dropShipping: DropShippingInfoResponse?

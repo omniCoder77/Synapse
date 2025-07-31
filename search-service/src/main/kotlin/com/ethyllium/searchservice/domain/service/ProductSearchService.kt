@@ -1,7 +1,7 @@
 package com.ethyllium.searchservice.domain.service
 
 import com.ethyllium.searchservice.domain.model.Product
-import com.ethyllium.searchservice.infrastructure.elasticsearch.entity.SearchProduct
+import com.ethyllium.searchservice.infrastructure.adapter.outbound.elasticsearch.entity.SearchProduct
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import reactor.core.publisher.Flux

@@ -2,6 +2,7 @@ package com.ethyllium.authservice.application.service
 
 import com.ethyllium.authservice.application.util.Claims
 import com.ethyllium.authservice.domain.model.RegisterResult
+import com.ethyllium.authservice.domain.model.Role
 import com.ethyllium.authservice.domain.model.UserRegisteredEvent
 import com.ethyllium.authservice.domain.port.driven.TokenService
 import com.ethyllium.authservice.domain.port.driven.TotpSecretGenerator
@@ -10,7 +11,6 @@ import com.ethyllium.authservice.domain.port.driver.RegisterUserUseCase
 import com.ethyllium.authservice.domain.port.driver.UserEventPublisher
 import com.ethyllium.authservice.domain.util.CredentialValidator
 import com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.dto.RegisterRequest
-import org.springframework.context.annotation.Bean
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Scheduler
@@ -42,7 +42,10 @@ class RegisterUseCaseImpl(
                 userId = addedUser.username,
                 email = addedUser.email,
                 deviceFingerprint = registerRequest.deviceFingerprint,
-                password = registerRequest.password
+                password = registerRequest.password,
+                role = addedUser.roles.split(",").map { Role.valueOf(it) },
+                phoneNumber = registerRequest.phoneNumber,
+                name = registerRequest.name,
             )
             userEventPublisher.publish(event).subscribeOn(Schedulers.boundedElastic()).subscribe()
             (if (mfaTotp != null) {

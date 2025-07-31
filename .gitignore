@@ -5,3 +5,4 @@ keystore.jks
 kafka_jaas.conf
 mongo-init.js
 config
+test-tokens.txt

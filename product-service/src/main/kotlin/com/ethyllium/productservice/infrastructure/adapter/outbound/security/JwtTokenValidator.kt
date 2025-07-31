@@ -29,6 +29,6 @@ class JwtTokenValidator(private val keyProvider: JwtKeyProvider) {
 
     @Suppress("UNCHECKED_CAST")
     fun getRolesFromClaims(claims: Claims): List<String> {
-        return claims.get("role", List::class.java) as? List<String> ?: emptyList()
+        return listOf(claims.get("role", String::class.java))
     }
 }

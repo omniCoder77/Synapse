@@ -5,7 +5,7 @@ import com.ethyllium.authservice.domain.port.driven.EmailService
 import com.ethyllium.authservice.domain.port.driven.LoginAttemptRepository
 import com.ethyllium.authservice.domain.port.driven.UserRepository
 import com.ethyllium.authservice.infrastructure.adapters.outbound.communication.RedisEventPublisher
-import com.ethyllium.authservice.infrastructure.adapters.outbound.persistence.jpa.entity.LoginAttemptEntity
+import com.ethyllium.authservice.infrastructure.adapters.outbound.persistence.postgresql.entity.LoginAttemptEntity
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value

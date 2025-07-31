@@ -1,6 +1,7 @@
 package com.ethyllium.productservice.domain.port.driven
 
 import com.ethyllium.productservice.domain.model.*
+import com.ethyllium.productservice.infrastructure.adapter.inbound.kafka.entities.SellerRegisteredEvent
 import reactor.core.publisher.Mono
 
 interface SellerRepository {
@@ -23,4 +24,5 @@ interface SellerRepository {
 
     fun delete(sellerId: String): Mono<Boolean>
     fun findById(sellerId: String): Mono<Seller>
+    fun addTempSeller(sellerRegisteredEvent: SellerRegisteredEvent)
 }

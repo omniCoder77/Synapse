@@ -2,7 +2,7 @@ package com.ethyllium.authservice.infrastructure.adapters.inbound.rest.v1.dto
 
 import com.ethyllium.authservice.domain.model.Role
 import com.ethyllium.authservice.domain.model.User
-import java.util.UUID
+import java.util.*
 
 data class RegisterRequest(
     val name: String,
@@ -11,7 +11,7 @@ data class RegisterRequest(
     val mfa: Boolean,
     val deviceFingerprint: String,
     val phoneNumber: String,
-    val role: Role = Role.USER,
+    val role: Role = Role.CUSTOMER,
     val totp : String? = null
 ) {
     fun toUser() = User(

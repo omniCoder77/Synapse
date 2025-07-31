@@ -1,8 +1,9 @@
 package com.synapse.orderservice.domain.port.driver
 
 import com.synapse.orderservice.domain.model.*
-import com.synapse.orderservice.infrastructure.inbound.web.rest.dto.IdQuantity
+import com.synapse.orderservice.infrastructure.inbound.rest.rest.dto.IdQuantity
 import reactor.core.publisher.Mono
+import java.util.*
 
 interface OrderService {
     fun getOrderById(orderId: String): Mono<Order>
@@ -23,5 +24,5 @@ interface OrderService {
         notes: String?,
         currency: String,
         userId: String
-    ): Mono<Void>
+    ): Mono<UUID>
 }

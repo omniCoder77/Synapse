@@ -28,7 +28,7 @@ data class OrderEntity(
     @Column("cancelled_at") val cancelledAt: LocalDateTime? = null,
     @Column("payment_method") val paymentMethod: String,
     @Column("payment_provider") val paymentProvider: String? = null,
-    val paymentStatus: String = PaymentStatus.PENDING.name,
+    val paymentStatus: String = PaymentStatus.REQUESTED.name,
     @Column("provider_payment_id") val providerPaymentId: String? = null,
 ) {
     fun toDomain() = Order(

@@ -2,7 +2,7 @@ package com.ethyllium.authservice.application.service
 
 import com.ethyllium.authservice.domain.model.User
 import com.ethyllium.authservice.domain.port.driven.UserRepository
-import com.ethyllium.authservice.infrastructure.adapters.outbound.persistence.jpa.entity.UserEntity
+import com.ethyllium.authservice.infrastructure.adapters.outbound.persistence.postgresql.entity.UserEntity
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

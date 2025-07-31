@@ -5,7 +5,7 @@ import com.ethyllium.authservice.domain.model.LoginAttempt
 import com.ethyllium.authservice.domain.port.driven.*
 import com.ethyllium.authservice.domain.port.driver.LoginUseCase
 import com.ethyllium.authservice.domain.util.Constants
-import com.ethyllium.authservice.infrastructure.adapters.outbound.persistence.jpa.entity.UserEntity
+import com.ethyllium.authservice.infrastructure.adapters.outbound.persistence.postgresql.entity.UserEntity
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.security.crypto.password.PasswordEncoder

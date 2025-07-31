@@ -1,7 +1,7 @@
 package com.ethyllium.productservice.infrastructure.adapter.inbound.grpc
 
 import com.ethyllium.productservice.domain.model.StockStatus
-import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.postgres.entity.ProductDocument
+import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.mongodb.entity.ProductDocument
 import com.ethyllium.productservice.infrastructure.web.grpc.ProductResponse
 import com.ethyllium.productservice.infrastructure.web.grpc.ProductValidationRequest
 import com.ethyllium.productservice.infrastructure.web.grpc.ProductValidationResponse

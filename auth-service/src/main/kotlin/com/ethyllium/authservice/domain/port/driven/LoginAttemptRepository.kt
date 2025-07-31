@@ -1,7 +1,6 @@
 package com.ethyllium.authservice.domain.port.driven
 
-import com.ethyllium.authservice.infrastructure.adapters.outbound.persistence.jpa.entity.LoginAttemptEntity
-import reactor.core.publisher.Flux
+import com.ethyllium.authservice.infrastructure.adapters.outbound.persistence.postgresql.entity.LoginAttemptEntity
 import reactor.core.publisher.Mono
 import java.util.UUID
 

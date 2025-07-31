@@ -5,7 +5,7 @@ import com.ethyllium.productservice.domain.exception.InsufficientAuthenticationE
 import com.ethyllium.productservice.domain.exception.ProductDuplicateException
 import com.ethyllium.productservice.domain.exception.ProductNotFoundException
 import com.ethyllium.productservice.domain.exception.ProductValidationException
-import com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.response.ApiResponse
+import com.ethyllium.productservice.infrastructure.adapter.inbound.rest.dto.response.ApiResponse
 import jakarta.validation.ConstraintViolationException
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DuplicateKeyException

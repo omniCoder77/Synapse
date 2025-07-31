@@ -1,6 +1,7 @@
 package com.ethyllium.productservice.infrastructure.adapter.inbound.rest.dto.request
 
 import com.ethyllium.productservice.domain.model.Category
+import java.util.*
 
 data class CreateCategoryRequest(
     val name: String,
@@ -17,6 +18,7 @@ data class CreateCategoryRequest(
         slug = slug,
         level = level,
         path = path,
-        imageUrl = imageUrl
+        imageUrl = imageUrl,
+        id = UUID.randomUUID().toString()
     )
 }

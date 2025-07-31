@@ -1,16 +1,22 @@
 package com.ethyllium.authservice.infrastructure.adapters.outbound.communication
 
+import com.ethyllium.authservice.domain.model.Role
 import com.ethyllium.authservice.domain.model.UserRegisteredEvent
 import com.ethyllium.authservice.domain.port.driver.UserEventPublisher
+import com.ethyllium.authservice.infrastructure.adapters.outbound.communication.entity.SellerRegisteredEvent
+import com.ethyllium.authservice.infrastructure.adapters.outbound.persistence.postgresql.entity.Outbox
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
 import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.retry.annotation.Backoff
 import org.springframework.retry.annotation.Retryable
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -19,7 +25,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 @Component
 class RedisEventPublisher(
     private val eventTemplate: ReactiveRedisTemplate<String, UserRegisteredEvent>,
-    @Value("\${event.retry.max-attempts:3}") private val maxRetryAttempts: Int
+    @Value("\${event.retry.max-attempts:3}") private val maxRetryAttempts: Int,
+    private val r2dbcEntityTemplate: R2dbcEntityTemplate
 ) : UserEventPublisher {
 
     companion object {
@@ -44,7 +51,22 @@ class RedisEventPublisher(
     )
     override fun publish(event: UserRegisteredEvent): Mono<Long> {
         logger.info("Publishing event to channel '{}' for user {}", USER_REGISTERED_CHANNEL, event.email)
-
+        if (event.role.contains(Role.SELLER) || event.role.contains(Role.ADMIN)) {
+            val sellerRegistrationEvent = SellerRegisteredEvent(
+                userId = event.userId.toString(),
+                email = event.email,
+                role = event.role.map { it.name },
+                phoneNumber = event.phoneNumber,
+                name = event.name
+            )
+            val outbox = Outbox(
+                aggregateType = "Seller-Registeration",
+                aggregateId = event.userId,
+                eventType = "SellerRegisteredEvent",
+                payload = jacksonObjectMapper().writeValueAsString(sellerRegistrationEvent),
+            )
+            r2dbcEntityTemplate.insert(outbox).subscribeOn(Schedulers.boundedElastic()).subscribe()
+        }
         return eventTemplate.convertAndSend(USER_REGISTERED_CHANNEL, event).doOnSuccess {
             logger.debug("Successfully published event for user {}", event.email)
             if (failedEvents.isNotEmpty()) {

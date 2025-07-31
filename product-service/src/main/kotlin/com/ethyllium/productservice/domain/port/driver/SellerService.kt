@@ -1,10 +1,10 @@
 package com.ethyllium.productservice.domain.port.driver
 
 import com.ethyllium.productservice.domain.model.*
+import com.ethyllium.productservice.infrastructure.adapter.inbound.rest.dto.request.RegisterSellerRequest
 import reactor.core.publisher.Mono
 
 interface SellerService {
-    fun create(seller: Seller): Mono<Seller>
     fun delete(sellerId: String): Mono<Boolean>
     fun update(
         sellerId: String,
@@ -24,4 +24,5 @@ interface SellerService {
     fun updatePhoneNumber(sellerId: String, code: String, phoneNumber: String): Mono<Boolean>
     fun initiateEmailVerification(sellerId: String, email: String)
     fun updateEmail(token: String): Mono<Boolean>
+    fun registerSeller(registerSeller: RegisterSellerRequest, sellerId: String): Mono<Seller>
 }

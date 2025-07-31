@@ -1,7 +1,7 @@
 package com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.request
 
 import com.ethyllium.productservice.domain.model.VideoType
-import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.postgres.entity.ProductVideoDocument
+import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.mongodb.entity.ProductVideoDocument
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern

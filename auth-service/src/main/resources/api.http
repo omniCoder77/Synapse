@@ -1,14 +1,14 @@
-POST http://localhost:8080/api/v1/auth/register
+POST http://localhost:8081/api/v1/auth/register
 Content-Type: application/json
 
 {
   "name": "Rishabh Saraswat",
   "password": "#100Rishu",
-  "email": "rishabhsaraswat17@gmail.com",
+  "email": "rishabhsaraswat@gdddmail.com",
   "mfa": false,
   "deviceFingerprint": "9r8uifdsjkncx,mfjruy4u3ieok",
   "phoneNumber": "+917017093682",
-  "role": "USER"
+  "role": "SELLER"
 }
 
 ###

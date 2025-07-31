@@ -1,0 +1,2 @@
+GET localhost:8083/api/v1/payments/payment-order/a1b2c3d4-e5f6-7890-1234-567890abcdef
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiQ1VTVE9NRVIiLCJzdWIiOiIyYjIwZjkwYi00ZTk5LTQwMDEtOTZkMS0wYzEzYzE3ZGZjZWMiLCJpYXQiOjE3NTM1OTg5OTh9.ArjRX1Oyd_j1LJNU1iDcmVYAJlFclug18p3U7a632fE

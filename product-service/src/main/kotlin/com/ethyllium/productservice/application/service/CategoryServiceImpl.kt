@@ -2,19 +2,20 @@ package com.ethyllium.productservice.application.service
 
 import com.ethyllium.productservice.domain.model.Category
 import com.ethyllium.productservice.domain.port.driven.CategoryRepository
-import com.ethyllium.productservice.domain.port.driven.EventPublisher
+import com.ethyllium.productservice.domain.port.driven.OutboxEntityRepository
 import com.ethyllium.productservice.domain.port.driven.StorageService
 import com.ethyllium.productservice.domain.port.driver.CategoryService
 import org.slf4j.LoggerFactory
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
-import reactor.core.scheduler.Schedulers
 
 @Service
+@Transactional
 class CategoryServiceImpl(
     private val categoryRepository: CategoryRepository,
-    private val eventPublisher: EventPublisher,
+    private val outboxEntityRepository: OutboxEntityRepository,
     private val storageService: StorageService
 ) : CategoryService {
 
@@ -26,42 +27,43 @@ class CategoryServiceImpl(
     }
 
     override fun create(category: Category, file: FilePart?): Mono<Category> {
-        return if (file != null && file.filename().isNotEmpty()) {
+        val categoryWithLogoMono = if (file != null && file.filename().isNotEmpty()) {
             storageService.store(file, CATEGORY_LOGOS_STORAGE_PATH).map { filename ->
                 category.apply { imageUrl = storageService.getFileUrl(filename, CATEGORY_LOGOS_URL_PATH) }
-            }.flatMap { updatedBrand ->
-                categoryRepository.insert(updatedBrand)
-            }.doOnSuccess { savedBrand ->
-                Mono.just {
-                    eventPublisher.publishCategoryCreated(category)
-                }.subscribeOn(Schedulers.boundedElastic()).subscribe()
             }
         } else {
-            categoryRepository.insert(category).doOnSuccess { savedBrand ->
-                Mono.just {
-                    eventPublisher.publishCategoryCreated(category)
-                }.subscribeOn(Schedulers.boundedElastic()).subscribe()
+            Mono.just(category)
+        }
 
-            }
+        return categoryWithLogoMono.flatMap { categoryToSave ->
+            categoryRepository.insert(categoryToSave)
+                .flatMap { savedCategory ->
+                    outboxEntityRepository.publishCategoryCreated(savedCategory)
+                        .thenReturn(savedCategory)
+                }
         }
     }
 
     override fun update(
         categoryId: String, name: String?, description: String?, slug: String?, parentId: String?
     ): Mono<Boolean> {
-        return categoryRepository.update(categoryId, name, description, slug, parentId).doOnSuccess { updated ->
-            if (updated) {
-                Mono.fromRunnable<Void> {
-                    eventPublisher.publishCategoryUpdated(categoryId, name, description, slug, parentId)
-                }.subscribeOn(Schedulers.boundedElastic()).subscribe()
+        return categoryRepository.update(categoryId, name, description, slug, parentId)
+            .flatMap { updated ->
+                if (updated) {
+                    outboxEntityRepository.publishCategoryUpdated(categoryId, name, description, slug, parentId, null)
+                        .thenReturn(true)
+                } else {
+                    Mono.just(false)
+                }
             }
-        }
     }
 
     override fun delete(categoryId: String): Mono<Boolean> {
-        return categoryRepository.delete(categoryId).doOnSuccess { deleted ->
+        return categoryRepository.delete(categoryId).flatMap { deleted ->
             if (deleted) {
-                eventPublisher.publishCategoryDeleted(categoryId)
+                outboxEntityRepository.publishCategoryDeleted(categoryId).thenReturn(true)
+            } else {
+                Mono.just(false)
             }
         }
     }
@@ -70,25 +72,24 @@ class CategoryServiceImpl(
         categoryId: String, file: FilePart
     ): Mono<Boolean> {
         return storageService.store(file, CATEGORY_LOGOS_STORAGE_PATH).flatMap { filename ->
-                val imageUrl = storageService.getFileUrl(filename, CATEGORY_LOGOS_URL_PATH)
-                categoryRepository.update(categoryId, imageUrl).doOnSuccess { success ->
-                        if (success) {
-                            Mono.fromRunnable<Void> {
-                                eventPublisher.publishCategoryUpdated(
-                                    categoryId = categoryId,
-                                    name = null,
-                                    description = null,
-                                    slug = null,
-                                    parentId = null,
-                                    imageUrl = imageUrl
-                                )
-                            }.subscribeOn(Schedulers.boundedElastic()).subscribe()
-                        } else {
-                            storageService.delete(filename, CATEGORY_LOGOS_STORAGE_PATH).subscribe(
-                                    { deleted -> if (deleted) logger.info("Cleaned up file after DB failure: $filename") },
-                                    { error -> logger.error("Failed to cleanup file: $filename", error) })
-                        }
-                    }
+            val imageUrl = storageService.getFileUrl(filename, CATEGORY_LOGOS_URL_PATH)
+            categoryRepository.update(categoryId, imageUrl).flatMap { success ->
+                if (success) {
+                    outboxEntityRepository.publishCategoryUpdated(
+                        categoryId = categoryId,
+                        name = null,
+                        description = null,
+                        slug = null,
+                        parentId = null,
+                        imageUrl = imageUrl
+                    ).thenReturn(true)
+                } else {
+                    // If DB update fails, attempt to clean up the orphaned file
+                    storageService.delete(filename, CATEGORY_LOGOS_STORAGE_PATH)
+                        .doOnSuccess { deleted -> if (deleted) logger.info("Cleaned up orphaned file: $filename") }
+                        .thenReturn(false) // Return false for the overall operation
+                }
             }
+        }
     }
 }

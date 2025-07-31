@@ -1,25 +1,13 @@
-package com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.request
+package com.ethyllium.productservice.infrastructure.adapter.inbound.rest.dto.request
 
-import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.postgres.entity.OpenGraphDataDocument
-import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.Pattern
+import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.mongodb.entity.OpenGraphDataDocument
 
 data class OpenGraphDataRequest(
-    @field:NotBlank(message = "Open Graph title is required") val title: String,
-
-    @field:NotBlank(message = "Open Graph description is required") val description: String,
-
-    @field:Pattern(
-        regexp = "^https?://.*",
-        message = "Open Graph image must be a valid HTTP/HTTPS URL"
-    ) val image: String? = null,
+    val title: String, val description: String, val image: String? = null,
 
     val type: String = "product"
 ) {
     fun toDocument() = OpenGraphDataDocument(
-        title = title,
-        description = description,
-        image = image,
-        type = type
+        title = title, description = description, image = image, type = type
     )
 }

@@ -54,6 +54,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.10.2")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
+    implementation("redis.clients:jedis:6.0.0")
+
     // ======================
     //  API Documentation
     // ======================
@@ -84,7 +86,6 @@ dependencies {
     //  Third-party Services
     // ======================
     implementation("com.twilio.sdk:twilio:10.7.0")
-    implementation("com.bucket4j:bucket4j_jdk17-core:8.14.0")
 
     // ======================
     //  Test Dependencies

@@ -22,7 +22,7 @@ data class Order(
     val cancelledAt: LocalDateTime? = null,
     val paymentMethod: PaymentMethod,
     val paymentProvider: String? = null,
-    val paymentStatus: PaymentStatus = PaymentStatus.PENDING,
+    val paymentStatus: PaymentStatus = PaymentStatus.REQUESTED,
     val providerPaymentId: String? = null,
 )
 
@@ -58,4 +58,4 @@ data class Address(
 )
 
 
-enum class PaymentStatus { PENDING, PAID, FAILED, REFUNDED }
+enum class PaymentStatus { PENDING, PAID, FAILED, REFUNDED,REQUESTED }

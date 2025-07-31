@@ -33,7 +33,7 @@ class RegisterController(
                 }
 
                 is RegisterResult.MfaImage -> {
-                    logger.info("Registration Successful for ${registerRequest.email}")
+                    logger.info("QR Code generated for MFA setup for ${registerRequest.email}")
                     ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(ApiResponse.Success(token.mfaQrCode))
                 }
 

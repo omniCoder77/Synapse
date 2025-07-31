@@ -1,10 +1,7 @@
 package com.ethyllium.productservice.infrastructure.adapter.inbound.rest.dto.response
 
-import com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.response.ProductInventoryResponse
 import com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.response.ProductMediaResponse
-import com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.response.ProductPricingResponse
 import com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.response.ProductSEOResponse
-import com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.response.ProductShippingResponse
 import com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.response.ProductSpecificationsResponse
 
 data class ProductResponse(

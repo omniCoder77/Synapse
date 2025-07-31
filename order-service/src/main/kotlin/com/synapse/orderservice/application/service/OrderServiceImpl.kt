@@ -1,18 +1,19 @@
 package com.synapse.orderservice.application.service
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.synapse.orderservice.application.event.OrderCreatedEvent
 import com.synapse.orderservice.domain.model.*
 import com.synapse.orderservice.domain.port.driven.OrderItemRepository
 import com.synapse.orderservice.domain.port.driven.OrderRepository
 import com.synapse.orderservice.domain.port.driven.OutboxRepository
 import com.synapse.orderservice.domain.port.driver.OrderService
-import com.synapse.orderservice.infrastructure.inbound.web.grpc.ProductValidationService
-import com.synapse.orderservice.infrastructure.inbound.web.rest.dto.IdQuantity
+import com.synapse.orderservice.infrastructure.inbound.grpc.grpc.ProductValidationService
+import com.synapse.orderservice.infrastructure.inbound.rest.rest.dto.IdQuantity
+import com.synapse.orderservice.infrastructure.outbound.kafka.event.OrderCreationEvent
+import com.synapse.orderservice.infrastructure.outbound.postgres.util.AggregateTypes
 import org.springframework.data.relational.core.query.Update
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
-import reactor.core.scheduler.Schedulers
 import java.util.*
 
 @Component
@@ -40,6 +41,7 @@ class OrderServiceImpl(
 
     }
 
+    @Transactional
     override fun createOrder(
         items: List<IdQuantity>,
         paymentMethod: PaymentMethod,
@@ -48,31 +50,28 @@ class OrderServiceImpl(
         notes: String?,
         currency: String,
         userId: String
-    ): Mono<Void> {
-        return productValidationService.createProduct(items).flatMap { (orderItems, amount) ->
-            val order = Order(
-                orderId = OrderId(UUID.randomUUID()),
-                userId = UserId(UUID.fromString(userId)),
-                orderStatus = OrderStatus.PENDING,
-                paymentMethod = paymentMethod,
-                billingAddress = billingAddress,
-                shippingAddress = shippingAddress,
-                notes = notes,
-                currency = currency,
-                subtotal = amount,
-                paymentStatus = PaymentStatus.PENDING
-            )
-            val total = order.subtotal + order.taxAmount + order.shippingAmount - order.discountAmount
-            val event = OrderCreatedEvent(total, order.currency)
-            val kafkaEvent = jacksonObjectMapper().writeValueAsString(event)
-            orderRepository.save(order).subscribeOn(Schedulers.boundedElastic()).subscribe()
-            orderItemRepository.save(orderItems).subscribeOn(Schedulers.boundedElastic()).subscribe()
+    ): Mono<UUID> {
+        val order = Order(
+            orderId = OrderId(UUID.randomUUID()),
+            userId = UserId(UUID.fromString(userId)),
+            orderStatus = OrderStatus.PENDING,
+            paymentMethod = paymentMethod,
+            billingAddress = billingAddress,
+            shippingAddress = shippingAddress,
+            notes = notes,
+            currency = currency,
+            subtotal = 0.0,
+            paymentStatus = PaymentStatus.REQUESTED
+        )
+        val event = OrderCreationEvent(items, userId, order.orderId.value.toString(), currency, paymentMethod)
+        val kafkaEvent = jacksonObjectMapper().writeValueAsString(event)
+        return orderRepository.save(order).flatMap { savedOrder ->
             outboxRepository.save(
-                aggregateId = order.orderId.value,
-                aggregateType = "Order",
-                eventType = "OrderCreatedEvent",
+                aggregateId = savedOrder,
+                aggregateType = AggregateTypes.ORDER_CREATION_REQUEST,
+                eventType = "OrderCreationRequested",
                 payload = kafkaEvent
-            ).subscribeOn(Schedulers.boundedElastic()).then()
+            ).map { savedOrder }
         }
     }
 }

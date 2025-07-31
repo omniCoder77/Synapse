@@ -1,6 +1,9 @@
-package com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.request
+package com.ethyllium.productservice.infrastructure.adapter.inbound.rest.dto.request
 
-import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.postgres.entity.ProductSpecificationsDocument
+import com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.request.CertificationRequest
+import com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.request.DimensionsRequest
+import com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.request.WeightRequest
+import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.mongodb.entity.ProductSpecificationsDocument
 
 data class ProductSpecificationsRequest(
     val weight: WeightRequest? = null,

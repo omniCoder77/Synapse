@@ -1,6 +1,4 @@
-package com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.response
-
-import com.ethyllium.productservice.domain.model.VideoType
+package com.ethyllium.productservice.infrastructure.adapter.inbound.rest.dto.response
 
 data class ProductVideoResponse(
     val url: String,
@@ -8,5 +6,5 @@ data class ProductVideoResponse(
     val description: String?,
     val thumbnailUrl: String?,
     val duration: Int?,
-    val type: VideoType
+    val type: String
 )

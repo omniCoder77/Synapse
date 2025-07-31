@@ -1,6 +1,6 @@
 package com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.request
 
-import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.postgres.entity.CertificationDocument
+import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.mongodb.entity.CertificationDocument
 import jakarta.validation.constraints.NotBlank
 import java.time.Instant
 

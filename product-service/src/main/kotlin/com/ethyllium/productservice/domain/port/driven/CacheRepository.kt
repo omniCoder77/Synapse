@@ -1,6 +1,6 @@
 package com.ethyllium.productservice.domain.port.driven
 
-import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.cache.RedisCacheRepository.Companion.DEFAULT_TTL_SECONDS
+import com.ethyllium.productservice.infrastructure.adapter.outbound.persistence.redis.RedisCacheRepository.Companion.DEFAULT_TTL_SECONDS
 import reactor.core.publisher.Mono
 import java.time.Duration
 

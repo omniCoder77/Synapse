@@ -15,5 +15,5 @@ class User(
 )
 
 enum class Role {
-    USER, SELLER, ADMIN
+    CUSTOMER, SELLER, ADMIN
 }

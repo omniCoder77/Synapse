@@ -6,7 +6,7 @@ import com.ethyllium.authservice.application.service.ValidationService
 import com.ethyllium.authservice.domain.port.driven.TokenService
 import com.ethyllium.authservice.domain.port.driven.TotpSecretGenerator
 import com.ethyllium.authservice.domain.port.driver.QrCodeGenerator
-import com.ethyllium.authservice.infrastructure.adapters.outbound.persistence.jpa.entity.UserEntity
+import com.ethyllium.authservice.infrastructure.adapters.outbound.persistence.postgresql.entity.UserEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity

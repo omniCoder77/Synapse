@@ -185,13 +185,14 @@ data class Brand(
     val id: String?,
     val name: String,
     val description: String? = null,
+    val ownerId: String,
     var logoUrl: String? = null,
     val website: String? = null,
     val slug: String
 )
 
 data class Category(
-    val id: String? = null,
+    val id: String,
     val name: String,
     val description: String? = null,
     val parentId: String? = null,

@@ -1,6 +1,4 @@
-package com.ethyllium.productservice.infrastructure.adapter.inbound.rest.rest.dto.response
-
-import com.ethyllium.productservice.domain.model.StockStatus
+package com.ethyllium.productservice.infrastructure.adapter.inbound.rest.dto.response
 
 data class ProductInventoryResponse(
     val stockQuantity: Int,
@@ -10,7 +8,7 @@ data class ProductInventoryResponse(
     val outOfStockThreshold: Int,
     val backorderAllowed: Boolean,
     val preorderAllowed: Boolean,
-    val stockStatus: StockStatus,
+    val stockStatus: String,
     val warehouseLocations: List<WarehouseStockResponse>,
     val lastStockUpdate: Long
 )
