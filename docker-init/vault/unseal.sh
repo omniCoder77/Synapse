@@ -1,0 +1,4 @@
+#!/bin/bash
+vault operator unseal 9/YT394C3rWPNgL9E2u55HNmsQXwHRG+NrrJw4QNoJ6H
+vault operator unseal B1XPM5w13DSPo66vGeadybvCpfqREa0XCZycGUotcqv5
+vault operator unseal TxqN9ViKAIJ4bi/1RhToy2q//aEpqvxVqtJRVwGa0tOM
