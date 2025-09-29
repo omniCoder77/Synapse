@@ -15,43 +15,32 @@
 ![alt text](https://img.shields.io/badge/Elasticsearch-9.0.1-005571?style=for-the-badge&logo=elasticsearch)
 
 ![alt text](https://img.shields.io/badge/Redis-8.0.3-DC382D?style=for-the-badge&logo=redis)
+# Synapse E-commerce Platform
 
-Synapse is a cutting-edge, fully reactive, event-driven e-commerce platform built on a robust microservices architecture. It demonstrates a modern approach to building scalable, resilient, and maintainable enterprise-level applications using Kotlin and the Spring ecosystem.
+Welcome to the Synapse E-commerce Platform, a modern, reactive, and resilient microservices-based application designed to showcase a complete e-commerce workflow. This project is built entirely in Kotlin using the Spring Boot framework and leverages a suite of powerful technologies to deliver a scalable and maintainable system.
 
-This project is not just a proof-of-concept; it's a comprehensive backend solution that covers everything from user authentication and product management to complex order processing and advanced search capabilities.
+## Table of Contents
+- [Architecture Overview](#architecture-overview)
+- [Core Concepts & Patterns](#core-concepts--patterns)
+- [Technology Stack](#technology-stack)
+- [Service Breakdown](#service-breakdown)
+  - [Gateway Service](#gateway-service)
+  - [Registry Service](#registry-service)
+  - [Auth Service](#auth-service)
+  - [Product Service](#product-service)
+  - [Search Service](#search-service)
+  - [Order Service](#order-service)
+  - [Payment Service](#payment-service)
+- [Setup and Running the Project](#setup-and-running-the-project)
+- [API Endpoints](#api-endpoints)
+- [Security](#security)
+- [Codebase Structure](#codebase-structure)
 
-# ✨ Core Features
-- **Completely Reactive Stack:** Built from the ground up with Spring WebFlux, Project Reactor, and R2DBC for a non-blocking, high-performance, and scalable system.
-- **Guaranteed Event Delivery with CDC:** Services are fully decoupled via **Apache Kafka**. Event publishing is made 100% reliable using the **Outbox Pattern** and **Debezium** for Change Data Capture.
-- **Distributed Transaction Management:** Implements the **SAGA Pattern** for managing complex, multi-service transactions like order fulfillment, ensuring data consistency without using blocking protocols.
-- **Secure by Design:**
-  - Authentication & Authorization: JWT-based security with roles and permissions managed by Spring Security.
-  - Two-Factor Authentication (2FA/MFA): TOTP-based 2FA for enhanced user security, complete with QR code generation.
-  - Secure Key Management: JWT signing keys are stored securely in a Java Keystore (JCEKS).
-- **High-Performance Architecture:**
-  - Probabilistic Data Structures: Utilizes **Cuckoo Filters** with Redis to dramatically reduce database load on high-traffic write paths (e.g., checking for unique emails/SKUs).
-  - Optimized Endpoints: Key endpoints like user registration and order creation are designed for extremely high RPS and low p99 latency using an "Accept, Offload, and Acknowledge" pattern.
-- **Advanced Product & Search:**
-  - Full-text, faceted search powered by **Elasticsearch**.
-  - Real-time index updates via the Kafka & Debezium event stream.
-  - Features like "similar products" and "popular search trends."
-- **Robust Data Management:**
-  - Polyglot Persistence: Utilizes PostgreSQL for transactional data and MongoDB for flexible product catalogs.
-- **Cloud-Native & Resilient:**
-  - Service Discovery: Netflix Eureka for dynamic service registration and discovery.
-  - Centralized API Gateway: Spring Cloud Gateway handles routing, rate limiting, and API composition.
-  - Containerized: Fully containerized with Docker and orchestrated with Docker Compose.
-# 🏛️ System Architecture
+<a id="architecture-overview"></a>
+## Architecture Overview
 
-Synapse employs a state-of-the-art microservices architecture where services are decoupled through an event bus. The system prioritizes availability and resilience, using asynchronous patterns for all critical business flows.
+The platform follows a microservices architecture, with each service responsible for a specific business domain. Services communicate asynchronously via a message broker (Kafka) and synchronously via REST and gRPC where appropriate.
 
-**Architectural Flow**:
-* All requests enter through the **API Gateway**, which discovers services via the **Eureka Registry**.
-* For write operations (e.g., Create Order), the service performs a single atomic transaction to save its state (e.g., `Order: PENDING`) and write an event record to an outbox table.
-* The client immediately receives a `202 ACCEPTED` response.
-* Debezium captures the outbox record from the database's transaction log and publishes it reliably to **Apache Kafka**.
-* Downstream services consume these events to perform their part of the business process, triggering a **SAGA** for distributed transactions.
-* For read operations, the Gateway routes to query services like the **Search Service**, which serves data from its optimized Elasticsearch index.
 ```mermaid
 flowchart TD
     subgraph Clients
@@ -150,83 +139,238 @@ flowchart TD
     class Registry,Twilio,Razorpay external
     class Postgres,Mongo,Elasticsearch,Redis infra
 ```
+<a id="core-concepts--patterns"></a>
+## Core Concepts & Patterns
 
-💡 Design Patterns & Concepts Demonstrated
+This project is not just a collection of services but an implementation of modern software engineering principles.
 
-This project is a practical implementation of several key software architecture and design patterns:
+-   **Reactive Programming**: The entire stack is built on a non-blocking, reactive foundation using **Spring WebFlux** and **Project Reactor**. This ensures high throughput and scalability under load.
+-   **Event-Driven Architecture**: Services are loosely coupled and communicate asynchronously through **Apache Kafka**. This improves resilience and allows services to evolve independently.
+-   **Outbox Pattern**: To guarantee data consistency between a service's database and the events it publishes, the Outbox pattern is implemented in the `auth`, `order`, and `product` services. This ensures that an event is published if and only if the corresponding database transaction is successful.
+-   **Hexagonal Architecture (Ports & Adapters)**: The codebase for each service is structured to isolate the core domain logic from external concerns.
+    -   `domain`: Contains the core business models, logic, and ports (interfaces).
+    -   `application`: Orchestrates the use cases by interacting with the domain.
+    -   `infrastructure`: Contains the adapters that implement the ports and interact with external systems like databases, message brokers, and third-party APIs.
+-   **CQRS (Command Query Responsibility Segregation)**: While not a full implementation, the principle is applied by separating the write-optimized databases (PostgreSQL, MongoDB) from the read-optimized search index (`search-service` with Elasticsearch).
+-   **Service Discovery**: **Netflix Eureka** is used as the service registry, allowing services to dynamically find and communicate with each other.
+-   **API Gateway**: **Spring Cloud Gateway** provides a single entry point for all client requests, handling routing, rate limiting, and security concerns.
 
-* **Change Data Capture (CDC) & The Outbox Pattern:** This is the core of the event-driven architecture. Instead of services publishing events directly (which can fall), they atomically commit their state and an event record to their own database. Debezium then captures this event from the database's transaction log and guarantees its publication to Kafka. This provides **iron-clad reliability** for event delivery.
-* **SAGA Pattern (Choreography-based):** Used for managing distributed transactions, most notably in the order creation process. When an order is placed, a series of events are published by the `Order`, `Payment`, and `Product` services. Each service reacts to events from the others to perform its part of the job. The SAGA includes **compensating transactions** to gracefully handle failures (e.g., automatically refunding a payment if the inventory reservation fails), ensuring data consistency without the need for blocking two-phase commits.
-* **CQRS (Command Query Responsibility Segregation):** The system naturally follows a CQRS pattern.
-    * **Command Side:** The `Auth`, `Product`, `Order`, and `Payment` services handle all state changes (the commands).
-    * **Query Side:** The `Search Service` provides a highly optimized read model, powered by Elasticsearch.
-    * **Synchronization:** The Kafka/Debezium pipeline ensures the query side is kept eventually consistent with the command side.
-* **Probabilistic Data Structures (Cuckoo Filter):** To optimize high-traffic write endpoints, the system uses a Cuckoo Filter (via RedisBloom). Before hitting the database to check if an email or product SKU exists, the service first queries the Cuckoo Filter. Since the Filter can definitively say if an item *does not exist*, it avoids a costly database query in the majority of cases, significantly reducing latency and load.
-* **API Gateway & Service Discovery:** A classic microservices setup using Spring Cloud Gateway and Netflix Eureka for routing and dynamic service discovery.
+<a id="technology-stack"></a>
+## Technology Stack
 
-# Microservices Overview
+| Category              | Technology                                                                          |
+| --------------------- | ----------------------------------------------------------------------------------- |
+| **Language/Framework**| Kotlin 1.9+, Spring Boot 3+ (WebFlux)                                               |
+| **Service Mesh**      | Spring Cloud (Gateway, Netflix Eureka)                                              |
+| **Databases**         | PostgreSQL (Auth, Order, Payment), MongoDB (Product), Elasticsearch (Search)        |
+| **Caching**           | Redis                                                                               |
+| **Messaging**         | Apache Kafka                                                                        |
+| **Communication**     | REST, gRPC (Order Service <-> Product Service)                                      |
+| **Security**          | JWT (JSON Web Tokens), Spring Security                                              |
+| **Resilience**        | Resilience4j (Circuit Breaker)                                                      |
+| **Third-Party APIs**  | Razorpay (Payments), Twilio (SMS OTP)                                               |
+| **API Documentation** | OpenAPI (Swagger)                                                                   |
+| **Testing**           | JUnit 5, MockK, Testcontainers, StepVerifier                                        |
 
-| Service Name     | Description                                                                                          | Technologies Used                                  | Database      |
-|------------------|------------------------------------------------------------------------------------------------------|----------------------------------------------------|---------------|
-| Gateway Service  | The single entry point. Handles API routing, rate limiting, and aggregates API documentation.        | Spring Cloud Gateway, WebFlux, Eureka, Redis       | -             |
-| Registry Service | Provides service discovery and registration for all microservices.                                   | 	Spring Cloud Netflix Eureka                       | -             |
-| Auth Service     | Manages user registration, login, JWT generation, MFA, email verification, and password reset.       | Spring WebFlux, Spring Security, R2DBC, JWT, Redis | PostgreSQL    |
-| Product Service  | Core of the catalog. Manages products, categories, brands, sellers, and inventory. Publishes events. | Spring WebFlux, Reactive MongoDB, Kafka, gRPC      | MongoDB       |
-| Order Service    | Handles order creation, validation, and processing. Communicates with Product Service via gRPC.      | Spring WebFlux, R2DBC, gRPC, Kafka                 | PostgreSQL    |
-| Payment Service  | Integrates with Razorpay for handling payments and processes payment status updates via webhooks.    | Spring Web, JPA, Kafka, Razorpay SDK               | PostgreSQL    |
-| Search Service   | Consumes Kafka events to provide powerful, real-time search capabilities for products.               | Spring WebFlux, Reactive Elasticsearch, Kafka      | Elasticsearch |
+<a id="service-breakdown"></a>
+## Service Breakdown
 
-⚙️ Technology Stack
+<a id="gateway-service"></a>
+### Gateway Service
+-   **Purpose**: The single entry point for all incoming client traffic.
+-   **Features**:
+    -   Routes requests to the appropriate downstream service based on path predicates.
+    -   Implements IP-based rate limiting using a custom `IpKeyResolver` and Redis to protect against abuse.
+    -   Acts as a reverse proxy and can handle SSL termination in a production environment.
+-   **Technology**: Spring Cloud Gateway.
 
-| Category             | Technologies                                                                    |
-|:---------------------|:--------------------------------------------------------------------------------|
-| Language & Framework | Kotlin, Spring Boot 3, Spring WebFlux, Spring Security, R2DBC                   |
-| Databases & Caching  | PostgreSQL, MongoDB, Elasticsearch, **Redis (with ReBloom for Cuckoo Filters)** |
-| Messaging & Events   | Debezium, Apache Kafka, Outbox Pattern                                          |
-| Architecture         | Microservices, Event-Driven, SAGA Pattern, CQRS, REST APIs, gRPC, Docker        |
-| Cloud & DevOps       | Netflix Eureka (Service Discovery), Spring Cloud Gateway, Resilience4j          |
-| Authentication       | JWT (JSON Web Tokens), TOTP (for 2FA)                                           |
-| Build Tool           | Gradle                                                                          |
+<a id="registry-service"></a>
+### Registry Service
+-   **Purpose**: Allows services to register themselves and discover others.
+-   **Features**:
+    -   Maintains a registry of all active service instances and their locations.
+    -   Enables dynamic scaling and resilience, as services can be added or removed without manual reconfiguration.
+-   **Technology**: Spring Cloud Netflix Eureka.
 
-🚀 Getting Started
+<a id="auth-service"></a>
+### Auth Service
+-   **Purpose**: Manages user identity, authentication, and access control.
+-   **Features**:
+    -   Secure user registration with credential validation and login functionalities.
+    -   JWT-based token generation (access and refresh tokens) using a secure keystore.
+    -   Multi-Factor Authentication (MFA) with TOTP (e.g., Google Authenticator), including QR code generation.
+    -   Handles new device logins by requiring email verification.
+    -   Secure password reset functionality via email tokens.
+    -   Uses Redis for caching tokens, sessions, and implementing rate limiting.
+    -   Employs the Outbox pattern to reliably publish a `SellerRegisteredEvent` to Kafka whenever a user with a `SELLER` role registers.
+-   **Technology**: PostgreSQL, Redis, Spring Security, JWT, Twilio, Resilience4j.
 
-Prerequisites
--------------
-- Git
-- JDK 21 or later
-- Docker & Docker Compose
+<a id="product-service"></a>
+### Product Service
+-   **Purpose**: The source of truth for all product, brand, category, and seller information.
+-   **Features**:
+    -   Comprehensive CRUD operations for Products, Brands, Categories, and Sellers.
+    -   Manages warehouse stock and inventory levels.
+    -   Handles file uploads for brand and category logos to a local disk storage.
+    -   Initiates seller onboarding by consuming `SellerRegisteredEvent` from Kafka, creating a temporary seller profile that can be fully registered later.
+    -   Utilizes the Outbox pattern to publish domain events (e.g., `ProductCreated`, `BrandUpdated`, `CategoryDeleted`) to Kafka, ensuring data consistency.
+    -   Exposes a high-performance gRPC endpoint for fast, internal product validation checks required by the `order-service`.
+    -   Uses a Redis-backed Cuckoo Filter for probabilistic, low-latency checks of SKU existence to prevent duplicates.
+-   **Technology**: MongoDB, Kafka, gRPC, Redis.
 
-1. Configuration
-----------------
-First, create and populate a `.env` file from the provided example:
+<a id="search-service"></a>
+### Search Service
+-   **Purpose**: Provides a rich, fast, and powerful search experience for products.
+-   **Features**:
+    -   Full-text search on product names, descriptions, and other attributes.
+    -   Advanced faceted search with filtering by category, brand, price range, color, and tags.
+    -   "More like this" functionality for recommending similar products.
+    -   Keeps its data synchronized with the `product-service` by consuming product-related events from Kafka and updating its Elasticsearch index accordingly.
+    -   Caches frequent search queries in Redis to improve performance.
+-   **Technology**: Elasticsearch, Kafka, Redis.
+
+<a id="order-service"></a>
+### Order Service
+-   **Purpose**: Manages the entire lifecycle of customer orders.
+-   **Features**:
+    -   Handles order creation, updates, and status tracking.
+    -   Ensures product validity and stock availability by making a synchronous, high-performance gRPC call to the `product-service` before creating an order.
+    -   Uses the Outbox pattern to reliably publish an `OrderCreatedEvent` to Kafka upon successful order creation, which in turn triggers the payment process in the `payment-service`.
+-   **Technology**: PostgreSQL, Kafka, gRPC.
+
+<a id="payment-service"></a>
+### Payment Service
+-   **Purpose**: Handles all payment and refund-related operations.
+-   **Features**:
+    -   Initiates payment flows by consuming `OrderCreatedEvent` from Kafka.
+    -   Integrates with a third-party payment gateway (Razorpay) to create payment orders.
+    -   Provides a secure endpoint for processing payment gateway webhooks to handle payment confirmation, failures, and refunds.
+    -   Uses Redis for idempotency checks on webhook events.
+    -   Employs the Outbox pattern to publish payment status events (`PaymentSuccess`, `PaymentFailure`) back to Kafka for other services to consume.
+-   **Technology**: PostgreSQL, Kafka, Redis, Razorpay API.
+
+<a id="setup-and-running-the-project"></a>
+## Setup and Running the Project
+
+### Prerequisites
+-   Java 17+
+-   Docker and Docker Compose
+-   An active account with **Twilio** and **Razorpay** to obtain API keys.
+
+### Configuration
+1.  **Clone the repository:**
+    ```bash
+    git clone https://your-repository-url.com/synapse-ecommerce.git
+    cd synapse-ecommerce
+    ```
+2.  **Environment Variables:**
+    Each service contains an `application.properties` (or `.yml`) file. You will need to configure the following properties, ideally through environment variables or a `.env` file for Docker Compose.
+
+    **Common:**
+    -   `SPRING_PROFILES_ACTIVE=docker`
+    -   Database credentials (PostgreSQL, MongoDB)
+    -   Redis and Kafka connection details
+
+    **Service-specific:**
+    -   `auth-service`: JWT secrets, Twilio SID/Token
+    -   `payment-service`: Razorpay Key ID/Secret
+    -   `product-service`: Twilio SID/Token
+
+### Building the Project
+You can build all services at once from the root directory.
 ```bash
-    cp .env.example .env
+# From the root directory of the project
+./mvnw clean install
 ```
-Open the `.env` file and fill in all the required credentials (Postgres, JWT, external APIs).
 
-Next, generate the secure Java Keystore for JWT signing:
+### Running with Docker Compose
+The most convenient way to run the entire platform is with Docker Compose. A `docker-compose.yml` file is provided at the root of the project to build and run all services and their dependencies.
 
-    keytool -genseckey -alias jwtKey -keyalg HmacSHA256 -keysize 256 -keystore keystore.jks -storetype JCEKS
+1.  **Create a `.env` file** in the root directory and populate it with all the required configuration properties. A sample `.env.example` can be used as a template.
+2.  **Run Docker Compose:**
+    ```bash
+    docker-compose up --build -d
+    ```3.  **To check the logs for a specific service:**
+    ```bash
+    docker-compose logs -f <service_name>
+    # e.g., docker-compose logs -f auth-service
+    ```
+4.  **To shut down the platform and remove containers:**
+    ```bash
+    docker-compose down
+    ```
 
-Enter the passwords you defined in the `.env` file when prompted.
+<a id="api-endpoints"></a>
+## API Endpoints
 
-2. Running the Platform
------------------------
-With Docker and Docker Compose, starting the entire application stack is a single command from the project root:
+The API is exposed through the **Gateway Service**, which runs on port `8080`.
 
-    docker-compose up --build
+| Method | Endpoint                                        | Service           | Description                               | Authorization |
+|--------|-------------------------------------------------|-------------------|-------------------------------------------|---------------|
+| `POST` | `/api/v1/auth/register`                         | `auth-service`    | Register a new user.                      | `Public`      |
+| `POST` | `/api/v1/auth/login`                            | `auth-service`    | Log in and receive JWT tokens.            | `Public`      |
+| `POST` | `/api/v1/auth/forgot-password`                  | `auth-service`    | Initiate the password reset process.      | `Public`      |
+| `POST` | `/api/v1/products/seller/register`              | `product-service` | Complete seller registration details.     | `SELLER`      |
+| `POST` | `/api/v1/products`                              | `product-service` | Create a new product.                     | `SELLER`      |
+| `PATCH`| `/api/v1/products/{id}`                         | `product-service` | Update a product.                         | `SELLER`      |
+| `DELETE`| `/api/v1/products/{id}`                         | `product-service` | Delete a product.                         | `SELLER`      |
+| `POST` | `/api/v1/products/brands`                       | `product-service` | Create a new brand.                       | `SELLER`      |
+| `POST` | `/api/v1/products/category`                     | `product-service` | Create a new category.                    | `ADMIN`       |
+| `GET`  | `/api/v1/search`                                | `search-service`  | Search for products with filters.         | `Public`      |
+| `GET`  | `/api/v1/products/{id}`                         | `search-service`  | Get detailed information about a product. | `Public`      |
+| `POST` | `/api/v1/orders`                                | `order-service`   | Create a new order.                       | `CUSTOMER`    |
+| `GET`  | `/api/v1/payments/payment-order/{productOrderId}`| `payment-service` | Get Razorpay Order ID for payment.        | `CUSTOMER`    |
+| `POST` | `/api/v1/payments/webhook`                      | `payment-service` | Webhook endpoint for Razorpay.            | `Public`      |
 
-This will build and start all services. It may take a few minutes for all containers to become healthy and for Debezium to configure its connectors.
 
-3. Debezium Connector Configuration
------------------------------------
-Once the services are running, you must configure the Debezium connectors to start the CDC stream.
+<a id="security"></a>
+## Security
 
-(Provide instructions here on how to POST the JSON configurations for the PostgreSQL and MongoDB connectors to the Debezium Connect API at http://localhost:18083/connectors)
+-   **Authentication**: The platform uses JWT-based authentication. After a successful login, the `auth-service` issues an access token and a refresh token. The client must include the access token in the `Authorization: Bearer <token>` header for all subsequent requests to protected endpoints.
+-   **Authorization**: Role-based access control (RBAC) is enforced using Spring Security's method-level security. Endpoints are protected with annotations like `@PreAuthorize("hasRole('SELLER')")` to restrict access based on user roles (e.g., `CUSTOMER`, `SELLER`, `ADMIN`) embedded within the JWT.
+-   **Filters**: Each protected microservice includes a `JwtAuthenticationFilter` that intercepts incoming requests, validates the JWT signature and claims using a shared keystore, and populates the Spring Security context with the authenticated user's details.
 
-4. Accessing Services
----------------------
-- API Gateway: http://localhost:8080
-- Eureka Service Registry: http://localhost:8761
-- Aggregated API Docs (Swagger UI): http://localhost:8080/swagger-ui.html
-- MailHog (Email Testing): http://localhost:8025
+<a id="codebase-structure"></a>
+## Codebase Structure
+
+Each service is a self-contained module and follows the principles of **Hexagonal Architecture** for a clean separation of concerns:
+
+-   **/domain**: The core of the service, containing pure business logic. It has no dependencies on any framework.
+    -   `model`: Contains the core business entities, value objects, and enums.
+    -   `port/driver`: Interfaces (ports) that define how the application layer drives the domain (i.e., the use cases).
+    -   `port/driven`: Interfaces (ports) that define the contracts for external dependencies like databases or message brokers.
+-   **/application**: The orchestration layer that implements the use cases.
+    -   `service`: Implementations of the driver ports. They coordinate calls to domain objects and driven ports to execute business workflows.
+-   **/infrastructure**: The outermost layer containing all technical details and integrations.
+    -   `adapter/inbound`: Adapters that drive the application logic, such as REST controllers, gRPC services, and Kafka listeners.
+    -   `adapter/outbound`: Adapters that are driven by the application, such as database repository implementations, REST clients, and Kafka producers.
+
+Example structure for `product-service`:
+```
+product-service/
+└── src/main/kotlin/com/ethyllium/productservice/
+    ├── domain/
+    │   ├── model/
+    │   │   └── Product.kt
+    │   ├── port/
+    │   │   ├── driver/
+    │   │   │   └── ProductService.kt
+    │   │   └── driven/
+    │   │       └── ProductRepository.kt
+    ├── application/
+    │   └── service/
+    │       └── ProductServiceImpl.kt
+    └── infrastructure/
+        ├── adapter/
+        │   ├── inbound/
+        │   │   ├── rest/
+        │   │   │   └── ProductController.kt
+        │   │   └── grpc/
+        │   │       └── ProductValidationServerService.kt
+        │   └── outbound/
+        │       ├── persistence/
+        │       │   └── ProductRepositoryImpl.kt
+        │       └── kafka/
+        │           └── OutboxEntityRepositoryImpl.kt
+        └── ProductServiceApplication.kt
+```
